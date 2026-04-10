@@ -1,0 +1,59 @@
+{
+  "component": "TransformYourReality",
+  "description": "Animated hero section with rotating flower, orbit ring, and floating particles",
+  "html": "<div class=\"scene\">\n  <div class=\"particles\">\n    <div class=\"p\" style=\"width:5px;height:5px;top:18%;left:15%;--d:5s;--delay:-1s\"></div>\n    <div class=\"p\" style=\"width:4px;height:4px;top:30%;left:80%;--d:6s;--delay:-2s\"></div>\n    <div class=\"p\" style=\"width:6px;height:6px;top:70%;left:25%;--d:7s;--delay:-0.5s\"></div>\n    <div class=\"p\" style=\"width:3px;height:3px;top:60%;left:75%;--d:4.5s;--delay:-3s\"></div>\n    <div class=\"p\" style=\"width:5px;height:5px;top:80%;left:55%;--d:5.5s;--delay:-1.5s\"></div>\n  </div>\n  <div class=\"flower-wrap\">\n    <div class=\"orbit-ring\"><div class=\"orbit-dot\"></div></div>\n    <div class=\"flower\">\n      <div class=\"petal\" style=\"transform: rotate(0deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(40deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(80deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(120deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(160deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(200deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(240deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(280deg) translateY(-2px)\"></div>\n      <div class=\"petal\" style=\"transform: rotate(320deg) translateY(-2px)\"></div>\n      <div class=\"center-circle\"><div class=\"center-inner\"></div></div>\n    </div>\n  </div>\n  <p class=\"title\">Transform Your Reality</p>\n  <p class=\"subtitle\">Join the community pushing the boundaries of photo editing.</p>\n</div>",
+  "css": ".scene {\n  background: #7B3FC7;\n  border-radius: 16px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 60px 40px;\n  min-height: 420px;\n  overflow: hidden;\n  position: relative;\n}\n.flower-wrap {\n  position: relative;\n  width: 120px;\n  height: 120px;\n  margin-bottom: 36px;\n}\n.orbit-ring {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  width: 110px;\n  height: 110px;\n  margin: -55px 0 0 -55px;\n  border-radius: 50%;\n  border: 2px dashed rgba(255,255,255,0.55);\n  border-right-color: transparent;\n  border-bottom-color: transparent;\n  animation: spin 3.5s linear infinite;\n}\n@keyframes spin {\n  from { transform: rotate(-30deg); }\n  to   { transform: rotate(330deg); }\n}\n.orbit-dot {\n  position: absolute;\n  width: 7px;\n  height: 7px;\n  background: rgba(255,255,255,0.8);\n  border-radius: 50%;\n  top: -4px;\n  left: 50%;\n  margin-left: -3.5px;\n}\n.flower {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  width: 72px;\n  height: 72px;\n  margin: -36px 0 0 -36px;\n  animation: flowerPulse 4s ease-in-out infinite;\n}\n@keyframes flowerPulse {\n  0%,100% { transform: scale(1) rotate(0deg); }\n  50%      { transform: scale(1.08) rotate(15deg); }\n}\n.petal {\n  position: absolute;\n  width: 24px;\n  height: 34px;\n  background: linear-gradient(160deg, #a8c3e8 0%, #7ba6d4 60%, #5a88c0 100%);\n  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;\n  top: 50%;\n  left: 50%;\n  transform-origin: 50% 100%;\n  margin: -34px 0 0 -12px;\n  opacity: 0.92;\n}\n.center-circle {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  width: 22px;\n  height: 22px;\n  margin: -11px 0 0 -11px;\n  background: white;\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  animation: glow 2.5s ease-in-out infinite;\n}\n@keyframes glow {\n  0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }\n  50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.15); }\n}\n.center-inner {\n  width: 9px;\n  height: 9px;\n  border-radius: 50%;\n  border: 2px solid #8B6ACF;\n  background: transparent;\n}\n.title {\n  color: #fff;\n  font-size: 22px;\n  font-weight: 700;\n  text-align: center;\n  margin: 0 0 12px;\n  letter-spacing: -0.3px;\n  animation: fadeUp 1s ease 0.3s both;\n  font-family: sans-serif;\n}\n.subtitle {\n  color: rgba(255,255,255,0.78);\n  font-size: 14px;\n  text-align: center;\n  line-height: 1.6;\n  max-width: 220px;\n  margin: 0;\n  animation: fadeUp 1s ease 0.5s both;\n  font-family: sans-serif;\n}\n@keyframes fadeUp {\n  from { opacity: 0; transform: translateY(14px); }\n  to   { opacity: 1; transform: translateY(0); }\n}\n.particles {\n  position: absolute;\n  inset: 0;\n  pointer-events: none;\n}\n.p {\n  position: absolute;\n  border-radius: 50%;\n  background: rgba(255,255,255,0.18);\n  animation: floatP var(--d) ease-in-out infinite var(--delay);\n}\n@keyframes floatP {\n  0%,100% { transform: translateY(0) scale(1); opacity: 0.18; }\n  50%      { transform: translateY(-18px) scale(1.3); opacity: 0.32; }\n}",
+  "animations": {
+    "spin": {
+      "duration": "3.5s",
+      "timing": "linear",
+      "iteration": "infinite",
+      "description": "Rotates the dashed orbit ring around the flower"
+    },
+    "flowerPulse": {
+      "duration": "4s",
+      "timing": "ease-in-out",
+      "iteration": "infinite",
+      "description": "Gently scales and rotates the flower"
+    },
+    "glow": {
+      "duration": "2.5s",
+      "timing": "ease-in-out",
+      "iteration": "infinite",
+      "description": "Pulses the box-shadow on the center circle"
+    },
+    "fadeUp": {
+      "duration": "1s",
+      "timing": "ease",
+      "delays": {
+        "title": "0.3s",
+        "subtitle": "0.5s"
+      },
+      "description": "Fade and slide up entrance for text elements"
+    },
+    "floatP": {
+      "duration": "varies (4.5s–7s per particle)",
+      "timing": "ease-in-out",
+      "iteration": "infinite",
+      "description": "Floating effect for background particle dots"
+    }
+  },
+  "colors": {
+    "background": "#7B3FC7",
+    "petalGradientStart": "#a8c3e8",
+    "petalGradientMid": "#7ba6d4",
+    "petalGradientEnd": "#5a88c0",
+    "orbitRing": "rgba(255,255,255,0.55)",
+    "orbitDot": "rgba(255,255,255,0.8)",
+    "centerCircle": "#ffffff",
+    "centerInnerBorder": "#8B6ACF",
+    "titleText": "#ffffff",
+    "subtitleText": "rgba(255,255,255,0.78)",
+    "particles": "rgba(255,255,255,0.18)"
+  },
+  "text": {
+    "title": "Transform Your Reality",
+    "subtitle": "Join the community pushing the boundaries of photo editing."
+  },
+  "usage": "Copy the 'css' value into a <style> tag and the 'html' value into your page body. No external dependencies required."
+}
