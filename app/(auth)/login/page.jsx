@@ -1,9 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
+import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
+
+const ClientAnimation = dynamic(
+  () => Promise.resolve(({ html }) => <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: html }} />),
+  { ssr: false }
+);
+
+// ✅ Entire form rendered client-only — kills all hydration errors from extensions
+const LoginForm = dynamic(() => Promise.resolve(function Form() {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <div className="w-full max-w-sm">
+
+      {/* Logo */}
+      <div className="flex items-center gap-3 mb-10">
+        <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
+          <CameraIcon />
+        </div>
+        <span className="text-sm font-semibold text-gray-800 tracking-tight">SmartEditor AI</span>
+      </div>
+
+      {/* Heading — largest, heaviest */}
+      <h1 className="login-heading text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-2">Welcome back</h1>
+
+      {/* Subheading — small, light */}
+      <p className="text-sm font-normal text-gray-400 leading-relaxed mb-9">Sign in to continue to your account</p>
+
+      {/* Email */}
+      <div className="mb-5">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Email address</label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><MailIcon /></span>
+          <input type="email" placeholder="you@example.com" className="w-full pl-9 pr-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
+        </div>
+      </div>
+
+      {/* Password */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Password</label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><LockIcon /></span>
+          <input type={showPassword ? "text" : "password"} placeholder="Enter your password" className="w-full pl-9 pr-10 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
+          <button type="button" onClick={() => setShowPassword((p) => !p)} className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition">
+            {showPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Forgot */}
+      <div className="mb-6">
+        <a href="/forget" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline">Forgot password?</a>
+      </div>
+
+      {/* Sign In */}
+      <button className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3">Sign in</button>
+
+      {/* Google */}
+      <button className="cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
+        <GoogleIcon />
+        Continue with Google
+      </button>
+
+      {/* Register */}
+      <p className="text-xs text-gray-500 text-center mt-7">
+        {"Don't have an account?"}{" "}
+        <a href="/register" className="text-violet-600 font-semibold hover:underline">Sign up</a>
+      </p>
+
+    </div>
+  );
+}), { ssr: false });
 
 export default function LoginPage() {
   const [data, setData] = useState(null);
+  const styleInjected = useRef(false);
 
   useEffect(() => {
     fetch("/animations/login.json")
@@ -12,101 +87,41 @@ export default function LoginPage() {
       .catch((err) => console.error("Animation load error:", err));
   }, []);
 
-  // Inject CSS from JSON
   useEffect(() => {
-    if (!data?.css) return;
-
+    if (!data?.css || styleInjected.current) return;
+    styleInjected.current = true;
     const style = document.createElement("style");
-    style.innerHTML = data.css;
+    style.id = "login-anim-style";
+    style.innerHTML = data.css + `.scene2 { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; width: 100% !important; height: 100% !important; min-height: 100% !important; padding: 0 !important; }`;
     document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
   }, [data]);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-white">
+    <div className="min-h-screen flex">
 
-      {/* LEFT SIDE - FORM  */}
-      <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-md">
+      {/* ── LEFT PANEL ── */}
+      <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
+        <LoginForm />
+      </div>
 
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 bg-indigo-500 rounded flex items-center justify-center text-white text-xs">
-                ✦
+      {/* ── RIGHT PANEL ── */}
+      <div className="hidden md:flex md:w-1/2 bg-violet-600 relative overflow-hidden items-center justify-center">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
+        <div className="w-full h-full flex items-center justify-center">
+          {data?.html ? (
+            <ClientAnimation html={data.html} />
+          ) : (
+            <div className="flex flex-col items-center gap-6 opacity-50">
+              <div className="w-28 h-28 rounded-full border-2 border-dashed border-white/40 animate-spin" />
+              <div className="flex flex-col items-center gap-2.5">
+                <div className="w-44 h-4 rounded-lg bg-white/20" />
+                <div className="w-32 h-3 rounded-lg bg-white/10" />
               </div>
-              <h2 className="font-semibold text-gray-700">SmartEditor AI</h2>
             </div>
-
-            <h1 className="text-3xl font-bold text-gray-800">Welcome</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Please enter your details
-            </p>
-          </div>
-
-          {/* Email */}
-          <div className="mb-4">
-            <label className="text-sm text-gray-600">Email address</label>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-
-          {/* Password */}
-          <div className="mb-2">
-            <label className="text-sm text-gray-600">Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-
-          {/* Forgot */}
-          <div className="text-right mb-5">
-            <a href="#" className="text-sm text-indigo-500 hover:underline">
-              Forgot password
-            </a>
-          </div>
-
-          {/* Button */}
-          <button className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg font-medium transition">
-            Sign in
-          </button>
-
-          {/* Google */}
-          <button className="w-full mt-3 flex items-center justify-center gap-2 border py-2 rounded-lg hover:bg-gray-50 transition">
-            <span>🌐</span>
-            Sign in with Google
-          </button>
-
-          {/* Signup */}
-          <p className="text-sm text-center mt-5 text-gray-600">
-            Don’t have an account?{" "}
-            <a href="/register" className="text-indigo-500 font-medium">
-              Sign up
-            </a>
-          </p>
+          )}
         </div>
       </div>
 
-      {/* RIGHT SIDE - ANIMATION  */}
-      <div className="w-full md:w-1/2 bg-gradient-to-br from-indigo-500 to-purple-600 flex flex-col items-center justify-center text-white p-10">
-
-        {data?.html ? (
-          <div
-            dangerouslySetInnerHTML={{ __html: data.html }}
-          />
-        ) : (
-          <p>Loading animation...</p>
-        )}
-
-      </div>
     </div>
   );
 }

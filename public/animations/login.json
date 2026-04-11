@@ -2,72 +2,20 @@
   "component": "AiPhotoMagic",
   "description": "Animated hero section with radar scan, ripple rings, spinning compass, and floating particles",
   "html": "<div class=\"scene2\">\n  <div class=\"particles2\">\n    <div class=\"pt\" style=\"width:5px;height:5px;top:14%;left:12%;--d:5s;--dl:-1s\"></div>\n    <div class=\"pt\" style=\"width:4px;height:4px;top:28%;left:82%;--d:6s;--dl:-2s\"></div>\n    <div class=\"pt\" style=\"width:6px;height:6px;top:72%;left:20%;--d:7s;--dl:-0.5s\"></div>\n    <div class=\"pt\" style=\"width:3px;height:3px;top:65%;left:78%;--d:4.5s;--dl:-3s\"></div>\n    <div class=\"pt\" style=\"width:5px;height:5px;top:82%;left:60%;--d:5.5s;--dl:-1.5s\"></div>\n  </div>\n  <div class=\"icon-wrap\">\n    <div class=\"dash-ring\"></div>\n    <div class=\"dash-ring2\"></div>\n    <div class=\"ripple\"></div>\n    <div class=\"ripple ripple2\"></div>\n    <div class=\"solid-ring\"></div>\n    <div class=\"scan-line\"></div>\n    <div class=\"core\">\n      <svg class=\"compass\" viewBox=\"0 0 28 28\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M14 2 L16.5 11.5 L14 14 L11.5 11.5 Z\" fill=\"white\"/>\n        <path d=\"M14 26 L11.5 16.5 L14 14 L16.5 16.5 Z\" fill=\"rgba(255,255,255,0.55)\"/>\n        <path d=\"M2 14 L11.5 11.5 L14 14 L11.5 16.5 Z\" fill=\"rgba(255,255,255,0.55)\"/>\n        <path d=\"M26 14 L16.5 16.5 L14 14 L16.5 11.5 Z\" fill=\"white\"/>\n        <circle cx=\"14\" cy=\"14\" r=\"2.5\" fill=\"white\"/>\n      </svg>\n    </div>\n  </div>\n  <p class=\"title2\">AI-Powered Photo Magic</p>\n  <p class=\"subtitle2\">Enhance your photos with our smart, futuristic editor.</p>\n</div>",
-  "css": ".scene2 {\n  background: #7B3FC7;\n  border-radius: 16px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 60px 40px;\n  min-height: 420px;\n  overflow: hidden;\n  position: relative;\n}\n.icon-wrap {\n  position: relative;\n  width: 130px;\n  height: 130px;\n  margin-bottom: 36px;\n}\n.dash-ring {\n  position: absolute;\n  inset: 0;\n  border-radius: 50%;\n  border: 2px dashed rgba(255,255,255,0.5);\n  border-top-color: transparent;\n  border-left-color: transparent;\n  animation: spinCW 4s linear infinite;\n}\n.dash-ring2 {\n  position: absolute;\n  inset: 8px;\n  border-radius: 50%;\n  border: 1.5px dashed rgba(255,255,255,0.25);\n  border-bottom-color: transparent;\n  border-right-color: transparent;\n  animation: spinCCW 6s linear infinite;\n}\n@keyframes spinCW  { to { transform: rotate(360deg); } }\n@keyframes spinCCW { to { transform: rotate(-360deg); } }\n.solid-ring {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 76px; height: 76px;\n  margin: -38px 0 0 -38px;\n  border-radius: 50%;\n  border: 2px solid rgba(255,255,255,0.55);\n  animation: ringPulse 3s ease-in-out infinite;\n}\n@keyframes ringPulse {\n  0%,100% { transform: scale(1); opacity: 0.55; }\n  50%      { transform: scale(1.08); opacity: 0.9; }\n}\n.core {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 54px; height: 54px;\n  margin: -27px 0 0 -27px;\n  border-radius: 50%;\n  background: rgba(255,255,255,0.12);\n  display: flex; align-items: center; justify-content: center;\n  animation: corePulse 3s ease-in-out infinite;\n}\n@keyframes corePulse {\n  0%,100% { background: rgba(255,255,255,0.12); }\n  50%      { background: rgba(255,255,255,0.22); }\n}\n.compass {\n  width: 28px; height: 28px;\n  animation: compassSpin 6s ease-in-out infinite;\n}\n@keyframes compassSpin {\n  0%   { transform: rotate(0deg); }\n  25%  { transform: rotate(90deg); }\n  50%  { transform: rotate(180deg); }\n  75%  { transform: rotate(270deg); }\n  100% { transform: rotate(360deg); }\n}\n.scan-line {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 65px; height: 1.5px;\n  margin: 0 0 0 -32px;\n  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);\n  transform-origin: left center;\n  animation: radar 3s linear infinite;\n  border-radius: 2px;\n}\n@keyframes radar {\n  from { transform: rotate(0deg); opacity: 1; }\n  to   { transform: rotate(360deg); opacity: 1; }\n}\n.ripple {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 76px; height: 76px;\n  margin: -38px 0 0 -38px;\n  border-radius: 50%;\n  border: 1.5px solid rgba(255,255,255,0.35);\n  animation: rippleOut 3s ease-out infinite;\n}\n.ripple2 {\n  animation-delay: 1.5s;\n}\n@keyframes rippleOut {\n  0%   { transform: scale(0.9); opacity: 0.6; }\n  100% { transform: scale(1.9); opacity: 0; }\n}\n.particles2 {\n  position: absolute; inset: 0;\n  pointer-events: none;\n}\n.pt {\n  position: absolute;\n  border-radius: 50%;\n  background: rgba(255,255,255,0.15);\n  animation: floatPt var(--d) ease-in-out infinite var(--dl);\n}\n@keyframes floatPt {\n  0%,100% { transform: translateY(0); opacity: 0.15; }\n  50%      { transform: translateY(-16px); opacity: 0.3; }\n}\n.title2 {\n  color: #fff;\n  font-size: 22px;\n  font-weight: 700;\n  text-align: center;\n  margin: 0 0 12px;\n  font-family: sans-serif;\n  animation: fadeUp2 1s ease 0.3s both;\n}\n.subtitle2 {\n  color: rgba(255,255,255,0.78);\n  font-size: 14px;\n  text-align: center;\n  line-height: 1.6;\n  max-width: 240px;\n  margin: 0;\n  font-family: sans-serif;\n  animation: fadeUp2 1s ease 0.5s both;\n}\n@keyframes fadeUp2 {\n  from { opacity: 0; transform: translateY(14px); }\n  to   { opacity: 1; transform: translateY(0); }\n}",
+  "css": ".scene2 {\n  background: transparent;\n  border-radius: 0;\n  box-shadow: none;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  width: 100%;\n  height: 100%;\n  min-height: 100vh;\n  overflow: hidden;\n  position: relative;\n}\n.icon-wrap {\n  position: relative;\n  width: 180px;\n  height: 180px;\n  margin-bottom: 44px;\n}\n.dash-ring {\n  position: absolute;\n  inset: 0;\n  border-radius: 50%;\n  border: 2px dashed rgba(255,255,255,0.5);\n  border-top-color: transparent;\n  border-left-color: transparent;\n  animation: spinCW 4s linear infinite;\n}\n.dash-ring2 {\n  position: absolute;\n  inset: 10px;\n  border-radius: 50%;\n  border: 1.5px dashed rgba(255,255,255,0.25);\n  border-bottom-color: transparent;\n  border-right-color: transparent;\n  animation: spinCCW 6s linear infinite;\n}\n@keyframes spinCW  { to { transform: rotate(360deg); } }\n@keyframes spinCCW { to { transform: rotate(-360deg); } }\n.solid-ring {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 106px; height: 106px;\n  margin: -53px 0 0 -53px;\n  border-radius: 50%;\n  border: 2px solid rgba(255,255,255,0.55);\n  animation: ringPulse 3s ease-in-out infinite;\n}\n@keyframes ringPulse {\n  0%,100% { transform: scale(1); opacity: 0.55; }\n  50%      { transform: scale(1.08); opacity: 0.9; }\n}\n.core {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 76px; height: 76px;\n  margin: -38px 0 0 -38px;\n  border-radius: 50%;\n  background: rgba(255,255,255,0.12);\n  display: flex; align-items: center; justify-content: center;\n  animation: corePulse 3s ease-in-out infinite;\n}\n@keyframes corePulse {\n  0%,100% { background: rgba(255,255,255,0.12); }\n  50%      { background: rgba(255,255,255,0.22); }\n}\n.compass {\n  width: 36px; height: 36px;\n  animation: compassSpin 6s ease-in-out infinite;\n}\n@keyframes compassSpin {\n  0%   { transform: rotate(0deg); }\n  25%  { transform: rotate(90deg); }\n  50%  { transform: rotate(180deg); }\n  75%  { transform: rotate(270deg); }\n  100% { transform: rotate(360deg); }\n}\n.scan-line {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 90px; height: 1.5px;\n  margin: 0 0 0 -45px;\n  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);\n  transform-origin: left center;\n  animation: radar 3s linear infinite;\n  border-radius: 2px;\n}\n@keyframes radar {\n  from { transform: rotate(0deg); opacity: 1; }\n  to   { transform: rotate(360deg); opacity: 1; }\n}\n.ripple {\n  position: absolute;\n  top: 50%; left: 50%;\n  width: 106px; height: 106px;\n  margin: -53px 0 0 -53px;\n  border-radius: 50%;\n  border: 1.5px solid rgba(255,255,255,0.35);\n  animation: rippleOut 3s ease-out infinite;\n}\n.ripple2 {\n  animation-delay: 1.5s;\n}\n@keyframes rippleOut {\n  0%   { transform: scale(0.9); opacity: 0.6; }\n  100% { transform: scale(2.2); opacity: 0; }\n}\n.particles2 {\n  position: absolute; inset: 0;\n  pointer-events: none;\n}\n.pt {\n  position: absolute;\n  border-radius: 50%;\n  background: rgba(255,255,255,0.15);\n  animation: floatPt var(--d) ease-in-out infinite var(--dl);\n}\n@keyframes floatPt {\n  0%,100% { transform: translateY(0); opacity: 0.15; }\n  50%      { transform: translateY(-16px); opacity: 0.3; }\n}\n.title2 {\n  color: #fff;\n  font-size: 26px;\n  font-weight: 700;\n  text-align: center;\n  margin: 0 0 14px;\n  font-family: sans-serif;\n  animation: fadeUp2 1s ease 0.3s both;\n}\n.subtitle2 {\n  color: rgba(255,255,255,0.78);\n  font-size: 15px;\n  text-align: center;\n  line-height: 1.6;\n  max-width: 260px;\n  margin: 0;\n  font-family: sans-serif;\n  animation: fadeUp2 1s ease 0.5s both;\n}\n@keyframes fadeUp2 {\n  from { opacity: 0; transform: translateY(14px); }\n  to   { opacity: 1; transform: translateY(0); }\n}",
   "animations": {
-    "spinCW": {
-      "duration": "4s",
-      "timing": "linear",
-      "iteration": "infinite",
-      "description": "Spins the outer dashed ring clockwise"
-    },
-    "spinCCW": {
-      "duration": "6s",
-      "timing": "linear",
-      "iteration": "infinite",
-      "description": "Spins the inner dashed ring counter-clockwise"
-    },
-    "ringPulse": {
-      "duration": "3s",
-      "timing": "ease-in-out",
-      "iteration": "infinite",
-      "description": "Pulses scale and opacity of the solid ring"
-    },
-    "corePulse": {
-      "duration": "3s",
-      "timing": "ease-in-out",
-      "iteration": "infinite",
-      "description": "Pulses the background opacity of the core circle"
-    },
-    "compassSpin": {
-      "duration": "6s",
-      "timing": "ease-in-out",
-      "iteration": "infinite",
-      "description": "Steps the compass icon through 90-degree rotations"
-    },
-    "radar": {
-      "duration": "3s",
-      "timing": "linear",
-      "iteration": "infinite",
-      "description": "Sweeps the scan line 360 degrees like a radar"
-    },
-    "rippleOut": {
-      "duration": "3s",
-      "timing": "ease-out",
-      "iteration": "infinite",
-      "delays": {
-        "ripple1": "0s",
-        "ripple2": "1.5s"
-      },
-      "description": "Expands ripple rings outward with fading opacity"
-    },
-    "floatPt": {
-      "duration": "varies (4.5s–7s per particle)",
-      "timing": "ease-in-out",
-      "iteration": "infinite",
-      "description": "Floating effect for background particle dots"
-    },
-    "fadeUp2": {
-      "duration": "1s",
-      "timing": "ease",
-      "delays": {
-        "title": "0.3s",
-        "subtitle": "0.5s"
-      },
-      "description": "Fade and slide up entrance for text elements"
-    }
+    "spinCW": { "duration": "4s", "timing": "linear", "iteration": "infinite" },
+    "spinCCW": { "duration": "6s", "timing": "linear", "iteration": "infinite" },
+    "ringPulse": { "duration": "3s", "timing": "ease-in-out", "iteration": "infinite" },
+    "corePulse": { "duration": "3s", "timing": "ease-in-out", "iteration": "infinite" },
+    "compassSpin": { "duration": "6s", "timing": "ease-in-out", "iteration": "infinite" },
+    "radar": { "duration": "3s", "timing": "linear", "iteration": "infinite" },
+    "rippleOut": { "duration": "3s", "timing": "ease-out", "iteration": "infinite" },
+    "floatPt": { "duration": "varies", "timing": "ease-in-out", "iteration": "infinite" },
+    "fadeUp2": { "duration": "1s", "timing": "ease" }
   },
   "colors": {
-    "background": "#7B3FC7",
+    "background": "transparent",
     "outerDashRing": "rgba(255,255,255,0.5)",
     "innerDashRing": "rgba(255,255,255,0.25)",
     "solidRing": "rgba(255,255,255,0.55)",
@@ -84,6 +32,5 @@
   "text": {
     "title": "AI-Powered Photo Magic",
     "subtitle": "Enhance your photos with our smart, futuristic editor."
-  },
-  "usage": "Copy the 'css' value into a <style> tag and the 'html' value into your page body. No external dependencies required."
+  }
 }
