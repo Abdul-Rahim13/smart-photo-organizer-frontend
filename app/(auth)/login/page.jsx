@@ -10,12 +10,76 @@ const ClientAnimation = dynamic(
   { ssr: false }
 );
 
+// ✅ Entire form rendered client-only — kills all hydration errors from extensions
+const LoginForm = dynamic(() => Promise.resolve(function Form() {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <div className="w-full max-w-sm">
+
+      {/* Logo */}
+      <div className="flex items-center gap-3 mb-10">
+        <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
+          <CameraIcon />
+        </div>
+        <span className="text-sm font-semibold text-gray-800 tracking-tight">SmartEditor AI</span>
+      </div>
+
+      {/* Heading — largest, heaviest */}
+      <h1 className="login-heading text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-2">Welcome back</h1>
+
+      {/* Subheading — small, light */}
+      <p className="text-sm font-normal text-gray-400 leading-relaxed mb-9">Sign in to continue to your account</p>
+
+      {/* Email */}
+      <div className="mb-5">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Email address</label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><MailIcon /></span>
+          <input type="email" placeholder="you@example.com" className="w-full pl-9 pr-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
+        </div>
+      </div>
+
+      {/* Password */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Password</label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><LockIcon /></span>
+          <input type={showPassword ? "text" : "password"} placeholder="Enter your password" className="w-full pl-9 pr-10 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
+          <button type="button" onClick={() => setShowPassword((p) => !p)} className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition">
+            {showPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Forgot */}
+      <div className="mb-6">
+        <a href="/forget" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline">Forgot password?</a>
+      </div>
+
+      {/* Sign In */}
+      <button className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3">Sign in</button>
+
+      {/* Google */}
+      <button className="cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
+        <GoogleIcon />
+        Continue with Google
+      </button>
+
+      {/* Register */}
+      <p className="text-xs text-gray-500 text-center mt-7">
+        {"Don't have an account?"}{" "}
+        <a href="/register" className="text-violet-600 font-semibold hover:underline">Sign up</a>
+      </p>
+
+    </div>
+  );
+}), { ssr: false });
+
 export default function LoginPage() {
   const [data, setData] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const styleInjected = useRef(false); // ✅ prevents re-injection on re-render
+  const styleInjected = useRef(false);
 
-  // Load animation JSON once
   useEffect(() => {
     fetch("/animations/login.json")
       .then((res) => res.json())
@@ -23,7 +87,6 @@ export default function LoginPage() {
       .catch((err) => console.error("Animation load error:", err));
   }, []);
 
-  // Inject CSS only once — never again
   useEffect(() => {
     if (!data?.css || styleInjected.current) return;
     styleInjected.current = true;
@@ -31,71 +94,14 @@ export default function LoginPage() {
     style.id = "login-anim-style";
     style.innerHTML = data.css + `.scene2 { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; width: 100% !important; height: 100% !important; min-height: 100% !important; padding: 0 !important; }`;
     document.head.appendChild(style);
-  }, [data]); // ✅ no cleanup — style stays, no flicker
+  }, [data]);
 
   return (
     <div className="min-h-screen flex">
 
       {/* ── LEFT PANEL ── */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
-        <div className="w-full max-w-sm">
-
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
-              <CameraIcon />
-            </div>
-            <span className="text-sm font-semibold text-gray-800 tracking-tight">SmartEditor AI</span>
-          </div>
-
-          {/* Heading */}
-          <h1 className="login-heading text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-2">Welcome back</h1>
-
-          {/* Subheading */}
-          <p className="text-sm font-normal text-gray-400 leading-relaxed mb-9">Sign in to continue to your account</p>
-
-          {/* Email */}
-          <div className="mb-5">
-            <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Email address</label>
-            <div suppressHydrationWarning className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><MailIcon /></span>
-              <input suppressHydrationWarning type="email" placeholder="you@example.com" className="w-full pl-9 pr-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Password</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><LockIcon /></span>
-              <input suppressHydrationWarning type={showPassword ? "text" : "password"} placeholder="Enter your password" className="w-full pl-9 pr-10 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
-              <button type="button" onClick={() => setShowPassword((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition">
-                {showPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Forgot */}
-          <div className="mb-6">
-            <a href="/forget" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline">Forgot password?</a>
-          </div>
-
-          {/* Sign In */}
-          <button className="w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3">Sign in</button>
-
-          {/* Google */}
-          <button className="w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
-            <GoogleIcon />
-            Continue with Google
-          </button>
-
-          {/* Register */}
-          <p className="text-xs text-gray-500 text-center mt-7">
-            {"Don't have an account?"}{" "}
-            <a href="/register" className="text-violet-600 font-semibold hover:underline">Sign up</a>
-          </p>
-
-        </div>
+        <LoginForm />
       </div>
 
       {/* ── RIGHT PANEL ── */}
