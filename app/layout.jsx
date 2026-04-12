@@ -1,5 +1,5 @@
 import './globals.css';
-import PageLoader from "@/components/PageLoader";
+import PageLoader from "../components/PageLoader";
 import { Geist, Geist_Mono, Sora, DM_Sans } from "next/font/google";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
