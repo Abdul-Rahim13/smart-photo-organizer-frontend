@@ -1,4 +1,5 @@
 import './globals.css';
+import PageLoader from "../components/PageLoader";
 import { Geist, Geist_Mono, Sora, DM_Sans } from "next/font/google";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${dmSans.variable} antialiased`}>
+        <PageLoader />
         {children}
       </body>
     </html>

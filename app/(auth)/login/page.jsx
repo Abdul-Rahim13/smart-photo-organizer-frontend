@@ -54,7 +54,7 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
 
       {/* Forgot */}
       <div className="mb-6">
-        <a href="/forget" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline">Forgot password?</a>
+        <a href="/forget-password" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline">Forgot password?</a>
       </div>
 
       {/* Sign In */}
