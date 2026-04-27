@@ -1,247 +1,319 @@
 "use client"
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell 
+  PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 import { 
   LayoutDashboard, Image as ImageIcon, Upload, Activity, 
   Layers, Trash2, Cpu, Settings, Search, Bell, User,
-  AlertCircle, CheckCircle, Database, Star, Wand2,
-  Users, FolderHeart, ShieldCheck, HardDrive, Clock, Plus
+  AlertCircle, CheckCircle, Star, Plus, Wand2, 
+  ChevronLeft, ChevronRight, LayoutGrid, Clock, FolderHeart, HardDrive, Users
 } from 'lucide-react';
+import Link from 'next/link';
 
-// EXACT DATA FROM YOUR IMAGES
+// --- MOCK DATA ---
 const uploadData = [
-  { day: 'Mon', value: 45 }, { day: 'Tue', value: 52 }, { day: 'Wed', value: 48 }, 
-  { day: 'Thu', value: 70 }, { day: 'Fri', value: 65 }, { day: 'Sat', value: 58 }, { day: 'Sun', value: 48 }
+  { name: 'Jan', val: 65 }, { name: 'Feb', val: 78 }, { name: 'Mar', val: 90 }, 
+  { name: 'Apr', val: 85 }, { name: 'May', val: 95 }, { name: 'Jun', val: 115 }
 ];
 
-const qualityData = [
-  { name: 'Excellent', value: 45, color: '#10b981' },
-  { name: 'Good', value: 30, color: '#f59e0b' },
-  { name: 'Poor', value: 15, color: '#ef4444' },
-  { name: 'Blurry', value: 10, color: '#6b7280' },
+const miniBarData = [
+  { v: 40 }, { v: 70 }, { v: 45 }, { v: 90 }, { v: 65 }, { v: 80 }
+];
+
+const miniPieData = [
+  { value: 25, color: '#ef4444' }, 
+  { value: 75, color: '#374151' }, 
+];
+
+const recentPhotos = [
+  { id: 1, title: "Beach Sunset", cat: "Outdoor", score: "95%", color: "bg-blue-900/20" },
+  { id: 2, title: "Family Gathering", cat: "Indoor", score: "90%", color: "bg-orange-900/20" },
+  { id: 3, title: "City Lights", cat: "Urban", score: "85%", color: "bg-purple-900/20" },
+  { id: 4, title: "Mountain View", cat: "Outdoor", score: "92%", color: "bg-emerald-900/20" },
 ];
 
 export default function Dashboard() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-[#0f0a19] text-gray-100">
+    <div className="flex h-screen bg-[#0f0a19] text-gray-100 overflow-hidden">
       
-      {/* SIDEBAR - Exactly like image */}
-      <aside className="w-64 bg-[#161026] border-r border-gray-800 flex flex-col hidden lg:flex">
-        <div className="p-6 flex items-center gap-2">
-          <div className="bg-yellow-500 text-black px-1.5 py-0.5 rounded font-bold text-sm">AI</div>
-          <span className="text-xl font-bold tracking-tight">Smart Photo</span>
+      {/* FIXED SIDEBAR */}
+      <aside className={`bg-[#161026] border-r border-gray-800/50 flex flex-col transition-all duration-300 ease-in-out z-20 ${isCollapsed ? 'w-20' : 'w-[260px]'}`}>
+        <div className={`p-6 flex-1 flex flex-col ${isCollapsed ? 'items-center px-2' : ''}`}>
+          <div className={`flex items-center gap-3 mb-10 overflow-hidden transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className="flex-shrink-0 bg-[#facc15] text-[#161026] h-10 w-10 rounded-lg flex items-center justify-center font-bold text-lg relative">
+              AI
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#161026] rounded-full"></span>
+            </div>
+            <div className={`transition-all duration-300 whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0 pointer-events-none' : 'opacity-100 w-auto'}`}>
+              <h2 className="font-bold leading-none text-sm md:text-base">Smart Photo</h2>
+              <p className="text-[10px] text-gray-500 uppercase mt-1">AI Powered</p>
+            </div>
+          </div>
+          
+          <nav className="space-y- w-full">
+
+            <SideItem icon={LayoutDashboard} label="Dashboard" active collapsed={isCollapsed} />
+            <Link href="/dashboard/gallery">
+                <SideItem icon={ImageIcon} label="Gallery" collapsed={isCollapsed} />
+            </Link>
+            <SideItem icon={Upload} label="Upload" collapsed={isCollapsed} />
+            <SideItem icon={Activity} label="Processing" collapsed={isCollapsed} />
+            <SideItem icon={Layers} label="Albums" collapsed={isCollapsed} />
+            <SideItem icon={LayoutGrid} label="Smart Albums" collapsed={isCollapsed} />
+            <SideItem icon={Trash2} label="Trash" collapsed={isCollapsed} />
+            <SideItem icon={Cpu} label="AI Models" collapsed={isCollapsed} />
+            <SideItem icon={Settings} label="Settings" collapsed={isCollapsed} />
+          </nav>
         </div>
-        
-        <nav className="flex-1 px-4 space-y-1">
-          <NavItem icon={LayoutDashboard} label="Dashboard" active />
-          <NavItem icon={ImageIcon} label="Gallery" />
-          <NavItem icon={Upload} label="Upload" />
-          <NavItem icon={Activity} label="Processing" />
-          <NavItem icon={Layers} label="Albums" />
-          <NavItem icon={Trash2} label="Trash" />
-          <NavItem icon={Cpu} label="AI Models" />
-          <NavItem icon={Settings} label="Settings" />
-        </nav>
+
+        <div className={`p-4 border-t border-gray-800/50 space-y-2 ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
+          <div className={`text-center transition-all duration-300 ${isCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
+            <p className="text-[10px] text-gray-500">Version 1.0.0</p>
+            <p className="text-[#facc15] text-[11px] font-bold uppercase tracking-tight">FYP Dashboard</p>
+          </div>
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="w-full flex items-center justify-center gap-2 bg-gray-800/30 py-2.5 rounded-xl text-xs text-gray-400 hover:text-white transition-all"
+          >
+            {isCollapsed ? <ChevronRight size={18} /> : <><ChevronLeft size={14} /> <span className="whitespace-nowrap">Collapse</span></>}
+          </button>
+        </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 overflow-y-auto p-8">
+      {/* SCROLLABLE MAIN CONTENT */}
+      <main className="flex-1 h-full overflow-y-auto custom-scrollbar p-8">
         
         {/* HEADER */}
-        <header className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold">Welcome Back, Abdul! 👋</h1>
-            <p className="text-gray-400 text-sm">Monitor your AI photo analysis and library stats.</p>
+        <header className="flex flex-wrap justify-between items-center mb-10 gap-4">
+          <div className="flex items-center gap-4">
+              <h2 className="text-lg font-bold">Dashboard</h2>
+              <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                <span className="text-[10px] text-green-500 font-bold uppercase tracking-wider">System Active</span>
+              </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search photos..." 
-                className="bg-[#1c1430] border border-gray-800 rounded-xl py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-indigo-500"
-              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+              <input type="text" placeholder="Search photos..." className="bg-[#1c1430] border border-gray-800 rounded-xl py-2 pl-10 pr-4 text-xs w-48 md:w-64 outline-none focus:border-indigo-500" />
             </div>
-            <button className="bg-[#1c1430] p-2 rounded-xl border border-gray-800 text-gray-400"><Bell size={20}/></button>
-            <div className="flex items-center gap-2 bg-indigo-600 px-4 py-2 rounded-xl font-medium">
-              <User size={18}/> Abdul
-            </div>
+            <button className="cursor-pointer p-2.5 bg-[#1c1430] border border-gray-800 rounded-xl text-gray-400 hover:text-white transition"><Bell size={18}/></button>
+            <button className="cursor-pointer flex items-center gap-2 bg-[#4f46e5] px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#4338ca] transition shadow-lg shadow-indigo-600/20">
+              <User size={16}/> Abdul
+            </button>
           </div>
         </header>
 
-        {/* AI PROGRESS CARD - Full Width */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-6 mb-8 relative overflow-hidden">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md"><Cpu size={24}/></div>
-              <div>
-                <h3 className="text-lg font-bold">AI Engine Processing</h3>
-                <p className="text-indigo-100 text-xs font-light">Analyzing lighting, blur, and facial features in real-time.</p>
-              </div>
-            </div>
-            <div className="text-3xl font-black">67%</div>
-          </div>
-          <div className="w-full bg-black/20 h-3 rounded-full overflow-hidden">
-            <div className="bg-white h-full transition-all duration-1000 w-[67%] shadow-[0_0_15px_rgba(255,255,255,0.5)]"></div>
-          </div>
-        </div>
+        <h1 className="text-2xl font-bold mb-2">Welcome Back, Abdul! 👋</h1>
+        <p className="text-gray-400 text-sm mb-8 font-light">Here's what's happening with your photos today.</p>
 
-        {/* TOP STATS - 3 COLUMN GRID */}
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <MainStat title="Total Library" value="1,248" sub="Photos" icon={ImageIcon} trend="+12%" />
-          <MainStat title="Processing" value="42" sub="In Queue" icon={Activity} trend="Active" color="text-yellow-500" />
-          <MainStat title="AI Cleaned" value="156" sub="Duplicates" icon={ShieldCheck} trend="-24%" color="text-green-500" />
-        </div>
-
-        {/* 2-COLUMN SECTION: CHART & LIST */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          
-          {/* UPLOAD ACTIVITY CHART */}
-          <div className="lg:col-span-2 bg-[#161026] border border-gray-800 rounded-3xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold">Upload Activity</h3>
-              <select className="bg-[#1c1430] text-xs border border-gray-800 rounded-lg px-2 py-1 outline-none">
-                <option>Weekly</option>
-                <option>Monthly</option>
-              </select>
-            </div>
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={uploadData}>
-                  <defs>
-                    <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} dy={10} />
-                  <Tooltip contentStyle={{backgroundColor: '#1c1430', border: 'none', borderRadius: '12px'}} />
-                  <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} fill="url(#colorVal)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* RECENT ACTIVITY LIST - Exactly like image card */}
-          <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
-            <h3 className="font-bold mb-6 flex items-center gap-2"><Clock size={18} className="text-yellow-500"/> Recent Activity</h3>
-            <div className="space-y-6">
-              <ActivityItem icon={Upload} title="Batch Upload" time="2m ago" desc="12 photos added" />
-              <ActivityItem icon={Wand2} title="Auto Enhanced" time="15m ago" desc="8 photos optimized" />
-              <ActivityItem icon={Users} title="Face Tagging" time="1h ago" desc="4 new people identified" />
-              <ActivityItem icon={Trash2} title="Cleanup" time="3h ago" desc="Low quality removed" />
-            </div>
-            <button className="w-full mt-6 py-2 text-xs font-medium text-gray-500 hover:text-white border border-gray-800 rounded-xl transition">View Full Logs</button>
-          </div>
-        </div>
-
-        {/* BOTTOM SECTION: QUALITY & MINI STATS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* QUALITY DISTRIBUTION PIE */}
-          <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 flex flex-col items-center">
-            <h3 className="font-bold self-start mb-4">Quality Score</h3>
-            <div className="h-48 w-full relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={qualityData} innerRadius={60} outerRadius={80} paddingAngle={8} dataKey="value">
-                    {qualityData.map((entry, index) => <Cell key={index} fill={entry.color} stroke="none" />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-bold">84%</span>
-                <span className="text-[10px] text-gray-500 uppercase">Avg Score</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 w-full mt-4">
-              {qualityData.map(d => (
-                <div key={d.name} className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{backgroundColor: d.color}}></div>
-                  <span className="text-[10px] text-gray-400">{d.name} ({d.value}%)</span>
+        {/* TOP STATS ROW */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 group">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Photos</p>
+                  <h2 className="text-3xl font-black">120</h2>
+                  <p className="text-[10px] mt-1 text-green-500 font-medium">↑ 12% vs last week</p>
                 </div>
-              ))}
+                <div className="w-16 h-12">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={uploadData.slice(2)}>
+                      <Area type="monotone" dataKey="val" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+           </div>
+           
+           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 relative group overflow-hidden">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Blurry Photos</p>
+                  <h2 className="text-3xl font-black text-white">5</h2>
+                  <p className="text-[10px] mt-1 text-red-500 font-medium">↓ 25% vs last week</p>
+                </div>
+                <div className="w-14 h-14 relative flex-shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={miniPieData} innerRadius={18} outerRadius={25} paddingAngle={0} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
+                        {miniPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <AlertCircle size={12} className="text-red-500" />
+                  </div>
+                </div>
+              </div>
+           </div>
+
+           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 group">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">AI Processed</p>
+                  <h2 className="text-3xl font-black">115</h2>
+                  <p className="text-[10px] mt-1 text-green-500 font-medium">↑ 8% vs last week</p>
+                </div>
+                <div className="w-16 h-12">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={miniBarData}>
+                      <Bar dataKey="v" fill="#10b981" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        {/* MIDDLE SECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="col-span-1 lg:col-span-2 space-y-6">
+            <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
+              <div className="flex justify-between items-center mb-8">
+                 <h3 className="font-bold">Upload Activity</h3>
+                 <div className="flex bg-black/20 p-1 rounded-lg">
+                    <button className="px-3 py-1 text-[10px] bg-indigo-600 rounded-md">Week</button>
+                    <button className="px-3 py-1 text-[10px] text-gray-500">Month</button>
+                 </div>
+              </div>
+              <div className="h-64">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={uploadData}>
+                      <defs>
+                        <linearGradient id="yellowGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#facc15" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#facc15" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="name" stroke="#4b5563" fontSize={10} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{backgroundColor: '#1c1430', border: 'none', borderRadius: '12px'}} />
+                      <Area type="monotone" dataKey="val" stroke="#facc15" strokeWidth={3} fill="url(#yellowGrad)" />
+                    </AreaChart>
+                 </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MiniStat label="Faces Detected" val="47" icon={Users} color="text-indigo-400" bg="bg-indigo-400/10" />
+              <MiniStat label="Smart Albums" val="12" icon={LayoutGrid} color="text-green-400" bg="bg-green-400/10" />
+              <MiniStat label="Avg Quality" val="92%" icon={Star} color="text-yellow-400" bg="bg-yellow-400/10" />
+              <MiniStat label="Storage Used" val="2.4 GB" icon={HardDrive} color="text-orange-400" bg="bg-orange-400/10" />
             </div>
           </div>
 
-          {/* 4-GRID MINI STATS - Matching image */}
-          <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-            <div className="grid grid-cols-2 gap-4 h-fit">
-               <MiniStat icon={Users} label="People" val="47" color="text-blue-400" />
-               <MiniStat icon={FolderHeart} label="Favorites" val="128" color="text-red-400" />
-               <MiniStat icon={HardDrive} label="Storage" val="4.2GB" color="text-purple-400" />
-               <MiniStat icon={Star} label="Best Shots" val="24" color="text-yellow-400" />
+          <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 flex flex-col h-full">
+            <h3 className="font-bold mb-6 flex items-center gap-2 text-white"><Clock size={16} className="text-yellow-500"/> Recent Activity</h3>
+            <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[420px]">
+               <LogItem text="12 photos uploaded" time="5m ago" icon={Upload} color="bg-indigo-500/20 text-indigo-400" />
+               <LogItem text="AI analysis complete" time="10m ago" icon={CheckCircle} color="bg-green-500/20 text-green-400" />
+               <LogItem text='New Album "Vacation"' time="1h ago" icon={FolderHeart} color="bg-purple-500/20 text-purple-400" />
+               <LogItem text="Cleanup completed" time="2h ago" icon={Trash2} color="bg-red-500/20 text-red-400" />
+               <LogItem text="Auto-enhanced 8 pics" time="3h ago" icon={Wand2} color="bg-yellow-500/20 text-yellow-400" />
             </div>
-            
-            {/* QUICK ACTION BUTTONS */}
-            <div className="grid grid-cols-2 gap-4">
-               <ActionButton icon={Plus} label="New Upload" primary />
-               <ActionButton icon={Layers} label="Create Album" />
-               <ActionButton icon={Wand2} label="AI Optimize" />
-               <ActionButton icon={Settings} label="Config AI" />
-            </div>
+            <button className="w-full mt-6 py-3 border border-gray-800 text-[10px] font-bold text-yellow-500 rounded-xl uppercase tracking-widest hover:bg-yellow-500/5 transition cursor-pointer">View All logs →</button>
+          </div>
+        </div>
+
+        {/* QUICK ACTIONS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <ActionButton icon={Plus} label="New Upload" primary />
+          <ActionButton icon={FolderHeart} label="Create Album" />
+          <ActionButton icon={Trash2} label="Review Trash" />
+          <ActionButton icon={Wand2} label="AI Optimize" />
+        </div>
+
+        {/* RECENT PHOTOS */}
+        <div className="mb-10">
+          <div className="flex justify-between items-center mb-6">
+             <h3 className="font-bold text-xl text-white">Recent Library</h3>
+             <button className="text-xs text-yellow-500 hover:underline font-bold uppercase tracking-wider">View All Gallery →</button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+             {recentPhotos.map(p => (
+               <div key={p.id} className="bg-[#161026] rounded-2xl overflow-hidden border border-gray-800 group cursor-pointer hover:border-indigo-500 transition-all">
+                  <div className={`h-40 ${p.color} relative flex items-center justify-center`}>
+                     <ImageIcon className="opacity-10 text-white" size={48}/>
+                     <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-green-400 border border-green-500/30">{p.score} AI</div>
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
+                     <div className="absolute bottom-3 left-3">
+                        <p className="text-xs font-bold text-white">{p.title}</p>
+                        <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1 font-medium">
+                          <span className="w-1 h-1 bg-indigo-500 rounded-full"></span> {p.cat}
+                        </p>
+                     </div>
+                  </div>
+               </div>
+             ))}
           </div>
         </div>
 
       </main>
+
+      {/* SCROLLBAR STYLES */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d2a3d; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+      `}</style>
     </div>
   );
 }
 
-// --- SUB-COMPONENTS FOR CLEAN CODE ---
+// --- UPDATED SUB-COMPONENTS ---
 
-function NavItem({ icon: Icon, label, active = false }) {
+function SideItem({ icon: Icon, label, active = false, collapsed }) {
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-600/20' : 'text-gray-500 hover:bg-gray-800 hover:text-gray-300'}`}>
-      <Icon size={20} />
-      <span className="font-medium text-sm">{label}</span>
-    </div>
-  );
-}
-
-function MainStat({ title, value, sub, icon: Icon, trend, color = "text-indigo-400" }) {
-  return (
-    <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
-      <div className="flex justify-between items-start mb-4">
-        <div className="bg-gray-800/50 p-2.5 rounded-xl"><Icon size={22} className={color} /></div>
-        <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-lg">{trend}</span>
+    <div className={`
+      flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-300 group
+      ${active ? 'bg-indigo-600/10 text-indigo-400 font-bold' : 'text-gray-500 hover:bg-gray-800 hover:text-gray-300'}
+      ${collapsed ? 'justify-center px-0' : ''}
+    `}>
+      <div className={`flex-shrink-0 transition-transform duration-300 ${collapsed ? 'scale-110' : ''}`}>
+        <Icon size={20} />
       </div>
-      <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{title}</p>
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-3xl font-bold">{value}</h2>
-        <span className="text-gray-500 text-xs">{sub}</span>
+      <div className={`
+        overflow-hidden transition-all duration-300 whitespace-nowrap
+        ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}
+      `}>
+        <span className="text-sm">{label}</span>
       </div>
+      
+      {/* Tooltip for collapsed mode */}
+      {collapsed && (
+        <div className="absolute left-20 bg-indigo-600 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+          {label}
+        </div>
+      )}
     </div>
   );
 }
 
-function MiniStat({ icon: Icon, label, val, color }) {
+function MiniStat({ label, val, icon: Icon, color, bg }) {
   return (
-    <div className="bg-[#161026] border border-gray-800 rounded-2xl p-4 flex items-center gap-4 transition hover:bg-[#1c1430]">
-      <div className={`p-2 bg-gray-800/50 rounded-lg ${color}`}><Icon size={18} /></div>
-      <div>
-        <p className="text-[10px] text-gray-500 uppercase leading-none mb-1">{label}</p>
+    <div className="bg-[#161026] border border-gray-800 rounded-2xl p-4 flex items-center gap-4 hover:bg-[#1c1430] transition">
+      <div className={`${bg} ${color} p-2.5 rounded-xl flex-shrink-0`}><Icon size={18} /></div>
+      <div className="overflow-hidden">
+        <p className="text-[8px] text-gray-500 uppercase tracking-widest mb-0.5 whitespace-nowrap">{label}</p>
         <p className="text-lg font-bold leading-none">{val}</p>
       </div>
     </div>
   );
 }
 
-function ActivityItem({ icon: Icon, title, time, desc }) {
+function LogItem({ text, time, icon: Icon, color }) {
   return (
-    <div className="flex items-start gap-4">
-      <div className="bg-gray-800/50 p-2 rounded-xl text-indigo-400 mt-1"><Icon size={16}/></div>
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <p className="text-sm font-bold">{title}</p>
-          <span className="text-[10px] text-gray-500">{time}</span>
-        </div>
-        <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+    <div className="flex gap-4">
+      <div className={`${color} p-2 rounded-lg h-fit flex-shrink-0`}><Icon size={14}/></div>
+      <div className="min-w-0">
+        <p className="text-xs font-bold leading-tight truncate text-white">{text}</p>
+        <p className="text-[9px] text-gray-500 mt-1">{time}</p>
       </div>
     </div>
   );
@@ -249,9 +321,9 @@ function ActivityItem({ icon: Icon, title, time, desc }) {
 
 function ActionButton({ icon: Icon, label, primary = false }) {
   return (
-    <button className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-all active:scale-95 ${primary ? 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700' : 'bg-[#1c1430] border-gray-800 hover:bg-gray-800 text-gray-400 hover:text-white'}`}>
-      <Icon size={24} />
-      <span className="text-[10px] font-bold uppercase">{label}</span>
+    <button className={`cursor-pointer flex flex-col items-center justify-center gap-3 p-6 rounded-3xl border transition-all hover:-translate-y-1 active:scale-95 'bg-[#1c1430] border-gray-800 hover:bg-gray-800 text-gray-400'`}>
+      <Icon size={24} className={'text-indigo-400'} />
+      <span className="text-[10px] font-bold uppercase tracking-tight">{label}</span>
     </button>
   );
 }
