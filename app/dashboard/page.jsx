@@ -1,0 +1,329 @@
+"use client"
+
+import React, { useState } from 'react';
+import { 
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, BarChart, Bar
+} from 'recharts';
+import { 
+  LayoutDashboard, Image as ImageIcon, Upload, Activity, 
+  Layers, Trash2, Cpu, Settings, Search, Bell, User,
+  AlertCircle, CheckCircle, Star, Plus, Wand2, 
+  ChevronLeft, ChevronRight, LayoutGrid, Clock, FolderHeart, HardDrive, Users
+} from 'lucide-react';
+import Link from 'next/link';
+
+// --- MOCK DATA ---
+const uploadData = [
+  { name: 'Jan', val: 65 }, { name: 'Feb', val: 78 }, { name: 'Mar', val: 90 }, 
+  { name: 'Apr', val: 85 }, { name: 'May', val: 95 }, { name: 'Jun', val: 115 }
+];
+
+const miniBarData = [
+  { v: 40 }, { v: 70 }, { v: 45 }, { v: 90 }, { v: 65 }, { v: 80 }
+];
+
+const miniPieData = [
+  { value: 25, color: '#ef4444' }, 
+  { value: 75, color: '#374151' }, 
+];
+
+const recentPhotos = [
+  { id: 1, title: "Beach Sunset", cat: "Outdoor", score: "95%", color: "bg-blue-900/20" },
+  { id: 2, title: "Family Gathering", cat: "Indoor", score: "90%", color: "bg-orange-900/20" },
+  { id: 3, title: "City Lights", cat: "Urban", score: "85%", color: "bg-purple-900/20" },
+  { id: 4, title: "Mountain View", cat: "Outdoor", score: "92%", color: "bg-emerald-900/20" },
+];
+
+export default function Dashboard() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  return (
+    <div className="flex h-screen bg-[#0f0a19] text-gray-100 overflow-hidden">
+      
+      {/* FIXED SIDEBAR */}
+      <aside className={`bg-[#161026] border-r border-gray-800/50 flex flex-col transition-all duration-300 ease-in-out z-20 ${isCollapsed ? 'w-20' : 'w-[260px]'}`}>
+        <div className={`p-6 flex-1 flex flex-col ${isCollapsed ? 'items-center px-2' : ''}`}>
+          <div className={`flex items-center gap-3 mb-10 overflow-hidden transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className="flex-shrink-0 bg-[#facc15] text-[#161026] h-10 w-10 rounded-lg flex items-center justify-center font-bold text-lg relative">
+              AI
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#161026] rounded-full"></span>
+            </div>
+            <div className={`transition-all duration-300 whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0 pointer-events-none' : 'opacity-100 w-auto'}`}>
+              <h2 className="font-bold leading-none text-sm md:text-base">Smart Photo</h2>
+              <p className="text-[10px] text-gray-500 uppercase mt-1">AI Powered</p>
+            </div>
+          </div>
+          
+          <nav className="space-y- w-full">
+
+            <SideItem icon={LayoutDashboard} label="Dashboard" active collapsed={isCollapsed} />
+            <Link href="/dashboard/gallery">
+                <SideItem icon={ImageIcon} label="Gallery" collapsed={isCollapsed} />
+            </Link>
+            <SideItem icon={Upload} label="Upload" collapsed={isCollapsed} />
+            <SideItem icon={Activity} label="Processing" collapsed={isCollapsed} />
+            <SideItem icon={Layers} label="Albums" collapsed={isCollapsed} />
+            <SideItem icon={LayoutGrid} label="Smart Albums" collapsed={isCollapsed} />
+            <SideItem icon={Trash2} label="Trash" collapsed={isCollapsed} />
+            <SideItem icon={Cpu} label="AI Models" collapsed={isCollapsed} />
+            <SideItem icon={Settings} label="Settings" collapsed={isCollapsed} />
+          </nav>
+        </div>
+
+        <div className={`p-4 border-t border-gray-800/50 space-y-2 ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
+          <div className={`text-center transition-all duration-300 ${isCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
+            <p className="text-[10px] text-gray-500">Version 1.0.0</p>
+            <p className="text-[#facc15] text-[11px] font-bold uppercase tracking-tight">FYP Dashboard</p>
+          </div>
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="w-full flex items-center justify-center gap-2 bg-gray-800/30 py-2.5 rounded-xl text-xs text-gray-400 hover:text-white transition-all"
+          >
+            {isCollapsed ? <ChevronRight size={18} /> : <><ChevronLeft size={14} /> <span className="whitespace-nowrap">Collapse</span></>}
+          </button>
+        </div>
+      </aside>
+
+      {/* SCROLLABLE MAIN CONTENT */}
+      <main className="flex-1 h-full overflow-y-auto custom-scrollbar p-8">
+        
+        {/* HEADER */}
+        <header className="flex flex-wrap justify-between items-center mb-10 gap-4">
+          <div className="flex items-center gap-4">
+              <h2 className="text-lg font-bold">Dashboard</h2>
+              <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                <span className="text-[10px] text-green-500 font-bold uppercase tracking-wider">System Active</span>
+              </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+              <input type="text" placeholder="Search photos..." className="bg-[#1c1430] border border-gray-800 rounded-xl py-2 pl-10 pr-4 text-xs w-48 md:w-64 outline-none focus:border-indigo-500" />
+            </div>
+            <button className="cursor-pointer p-2.5 bg-[#1c1430] border border-gray-800 rounded-xl text-gray-400 hover:text-white transition"><Bell size={18}/></button>
+            <button className="cursor-pointer flex items-center gap-2 bg-[#4f46e5] px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#4338ca] transition shadow-lg shadow-indigo-600/20">
+              <User size={16}/> Abdul
+            </button>
+          </div>
+        </header>
+
+        <h1 className="text-2xl font-bold mb-2">Welcome Back, Abdul! 👋</h1>
+        <p className="text-gray-400 text-sm mb-8 font-light">Here's what's happening with your photos today.</p>
+
+        {/* TOP STATS ROW */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 group">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Photos</p>
+                  <h2 className="text-3xl font-black">120</h2>
+                  <p className="text-[10px] mt-1 text-green-500 font-medium">↑ 12% vs last week</p>
+                </div>
+                <div className="w-16 h-12">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={uploadData.slice(2)}>
+                      <Area type="monotone" dataKey="val" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+           </div>
+           
+           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 relative group overflow-hidden">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Blurry Photos</p>
+                  <h2 className="text-3xl font-black text-white">5</h2>
+                  <p className="text-[10px] mt-1 text-red-500 font-medium">↓ 25% vs last week</p>
+                </div>
+                <div className="w-14 h-14 relative flex-shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={miniPieData} innerRadius={18} outerRadius={25} paddingAngle={0} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
+                        {miniPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <AlertCircle size={12} className="text-red-500" />
+                  </div>
+                </div>
+              </div>
+           </div>
+
+           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 group">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">AI Processed</p>
+                  <h2 className="text-3xl font-black">115</h2>
+                  <p className="text-[10px] mt-1 text-green-500 font-medium">↑ 8% vs last week</p>
+                </div>
+                <div className="w-16 h-12">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={miniBarData}>
+                      <Bar dataKey="v" fill="#10b981" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        {/* MIDDLE SECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="col-span-1 lg:col-span-2 space-y-6">
+            <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
+              <div className="flex justify-between items-center mb-8">
+                 <h3 className="font-bold">Upload Activity</h3>
+                 <div className="flex bg-black/20 p-1 rounded-lg">
+                    <button className="px-3 py-1 text-[10px] bg-indigo-600 rounded-md">Week</button>
+                    <button className="px-3 py-1 text-[10px] text-gray-500">Month</button>
+                 </div>
+              </div>
+              <div className="h-64">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={uploadData}>
+                      <defs>
+                        <linearGradient id="yellowGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#facc15" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#facc15" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="name" stroke="#4b5563" fontSize={10} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{backgroundColor: '#1c1430', border: 'none', borderRadius: '12px'}} />
+                      <Area type="monotone" dataKey="val" stroke="#facc15" strokeWidth={3} fill="url(#yellowGrad)" />
+                    </AreaChart>
+                 </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MiniStat label="Faces Detected" val="47" icon={Users} color="text-indigo-400" bg="bg-indigo-400/10" />
+              <MiniStat label="Smart Albums" val="12" icon={LayoutGrid} color="text-green-400" bg="bg-green-400/10" />
+              <MiniStat label="Avg Quality" val="92%" icon={Star} color="text-yellow-400" bg="bg-yellow-400/10" />
+              <MiniStat label="Storage Used" val="2.4 GB" icon={HardDrive} color="text-orange-400" bg="bg-orange-400/10" />
+            </div>
+          </div>
+
+          <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 flex flex-col h-full">
+            <h3 className="font-bold mb-6 flex items-center gap-2 text-white"><Clock size={16} className="text-yellow-500"/> Recent Activity</h3>
+            <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[420px]">
+               <LogItem text="12 photos uploaded" time="5m ago" icon={Upload} color="bg-indigo-500/20 text-indigo-400" />
+               <LogItem text="AI analysis complete" time="10m ago" icon={CheckCircle} color="bg-green-500/20 text-green-400" />
+               <LogItem text='New Album "Vacation"' time="1h ago" icon={FolderHeart} color="bg-purple-500/20 text-purple-400" />
+               <LogItem text="Cleanup completed" time="2h ago" icon={Trash2} color="bg-red-500/20 text-red-400" />
+               <LogItem text="Auto-enhanced 8 pics" time="3h ago" icon={Wand2} color="bg-yellow-500/20 text-yellow-400" />
+            </div>
+            <button className="w-full mt-6 py-3 border border-gray-800 text-[10px] font-bold text-yellow-500 rounded-xl uppercase tracking-widest hover:bg-yellow-500/5 transition cursor-pointer">View All logs →</button>
+          </div>
+        </div>
+
+        {/* QUICK ACTIONS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <ActionButton icon={Plus} label="New Upload" primary />
+          <ActionButton icon={FolderHeart} label="Create Album" />
+          <ActionButton icon={Trash2} label="Review Trash" />
+          <ActionButton icon={Wand2} label="AI Optimize" />
+        </div>
+
+        {/* RECENT PHOTOS */}
+        <div className="mb-10">
+          <div className="flex justify-between items-center mb-6">
+             <h3 className="font-bold text-xl text-white">Recent Library</h3>
+             <button className="text-xs text-yellow-500 hover:underline font-bold uppercase tracking-wider">View All Gallery →</button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+             {recentPhotos.map(p => (
+               <div key={p.id} className="bg-[#161026] rounded-2xl overflow-hidden border border-gray-800 group cursor-pointer hover:border-indigo-500 transition-all">
+                  <div className={`h-40 ${p.color} relative flex items-center justify-center`}>
+                     <ImageIcon className="opacity-10 text-white" size={48}/>
+                     <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-green-400 border border-green-500/30">{p.score} AI</div>
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
+                     <div className="absolute bottom-3 left-3">
+                        <p className="text-xs font-bold text-white">{p.title}</p>
+                        <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1 font-medium">
+                          <span className="w-1 h-1 bg-indigo-500 rounded-full"></span> {p.cat}
+                        </p>
+                     </div>
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+
+      </main>
+
+      {/* SCROLLBAR STYLES */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d2a3d; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+      `}</style>
+    </div>
+  );
+}
+
+// --- UPDATED SUB-COMPONENTS ---
+
+function SideItem({ icon: Icon, label, active = false, collapsed }) {
+  return (
+    <div className={`
+      flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-300 group
+      ${active ? 'bg-indigo-600/10 text-indigo-400 font-bold' : 'text-gray-500 hover:bg-gray-800 hover:text-gray-300'}
+      ${collapsed ? 'justify-center px-0' : ''}
+    `}>
+      <div className={`flex-shrink-0 transition-transform duration-300 ${collapsed ? 'scale-110' : ''}`}>
+        <Icon size={20} />
+      </div>
+      <div className={`
+        overflow-hidden transition-all duration-300 whitespace-nowrap
+        ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}
+      `}>
+        <span className="text-sm">{label}</span>
+      </div>
+      
+      {/* Tooltip for collapsed mode */}
+      {collapsed && (
+        <div className="absolute left-20 bg-indigo-600 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+          {label}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MiniStat({ label, val, icon: Icon, color, bg }) {
+  return (
+    <div className="bg-[#161026] border border-gray-800 rounded-2xl p-4 flex items-center gap-4 hover:bg-[#1c1430] transition">
+      <div className={`${bg} ${color} p-2.5 rounded-xl flex-shrink-0`}><Icon size={18} /></div>
+      <div className="overflow-hidden">
+        <p className="text-[8px] text-gray-500 uppercase tracking-widest mb-0.5 whitespace-nowrap">{label}</p>
+        <p className="text-lg font-bold leading-none">{val}</p>
+      </div>
+    </div>
+  );
+}
+
+function LogItem({ text, time, icon: Icon, color }) {
+  return (
+    <div className="flex gap-4">
+      <div className={`${color} p-2 rounded-lg h-fit flex-shrink-0`}><Icon size={14}/></div>
+      <div className="min-w-0">
+        <p className="text-xs font-bold leading-tight truncate text-white">{text}</p>
+        <p className="text-[9px] text-gray-500 mt-1">{time}</p>
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({ icon: Icon, label, primary = false }) {
+  return (
+    <button className={`cursor-pointer flex flex-col items-center justify-center gap-3 p-6 rounded-3xl border transition-all hover:-translate-y-1 active:scale-95 'bg-[#1c1430] border-gray-800 hover:bg-gray-800 text-gray-400'`}>
+      <Icon size={24} className={'text-indigo-400'} />
+      <span className="text-[10px] font-bold uppercase tracking-tight">{label}</span>
+    </button>
+  );
+}
