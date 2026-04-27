@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from 'next/link';
 import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 
@@ -54,12 +55,17 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
 
       {/* Forgot */}
       <div className="mb-6">
-        <a href="/forget-password" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline">Forgot password?</a>
+        <Link href="/forget-password" className="text-xs font-medium text-violet-600 hover:text-violet-700 hover:underline transition-colors">
+          Forgot password?
+        </Link>
       </div>
 
-      {/* Sign In */}
-      <button className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3">Sign in</button>
-
+      <Link href="/dashboard" className="block w-full">
+        <button className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3">
+         Sign in
+        </button>
+      </Link>
+      
       {/* Google */}
       <button className="cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
         <GoogleIcon />
