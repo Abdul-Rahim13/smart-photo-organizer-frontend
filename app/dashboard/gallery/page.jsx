@@ -535,7 +535,7 @@ function SideItem({ icon: Icon, label, active, collapsed }) {
     <div className={`flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-200 group
       ${active ? 'bg-indigo-600/15 text-indigo-400 font-bold border border-indigo-500/20' : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}
       ${collapsed ? 'justify-center px-0' : ''}`}>
-      <Icon size={20} className="flex-shrink-0"/>
+      <Icon size={20} className="shrink-0"/>
       <div className={`overflow-hidden transition-all duration-300 whitespace-nowrap ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
         <span className="text-sm">{label}</span>
       </div>
