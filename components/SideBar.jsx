@@ -27,14 +27,14 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`bg-[#161026] border-r border-gray-800/50 flex flex-col transition-all duration-300 ease-in-out z-20 flex-shrink-0
-        ${isCollapsed ? 'w-20' : 'w-[260px]'}`}
+      className={`bg-[#161026] border-r border-gray-800/50 flex flex-col transition-all duration-300 ease-in-out z-20 shrink-0
+        ${isCollapsed ? 'w-20' : 'w-65'}`}
     >
       <div className={`pl-5 pt-5 flex-1 flex flex-col ${isCollapsed ? 'items-center px-2' : ''}`}>
 
         {/* Logo */}
         <div className={`flex items-center gap-3 mb-10 overflow-hidden transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="flex-shrink-0 bg-[#facc15] text-[#161026] h-10 w-10 rounded-lg flex items-center justify-center font-bold text-lg relative cursor-pointer">
+          <div className="shrink-0 bg-[#facc15] text-[#161026] h-10 w-10 rounded-lg flex items-center justify-center font-bold text-lg relative cursor-pointer">
             AI
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#161026] rounded-full" />
           </div>
@@ -89,7 +89,7 @@ function SideItem({ icon: Icon, label, active, collapsed }) {
         : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-300'}
       ${collapsed ? 'justify-center px-0' : ''}
     `}>
-      <Icon size={20} className="flex-shrink-0" />
+      <Icon size={20} className="shrink-0" />
 
       <div className={`overflow-hidden transition-all duration-300 whitespace-nowrap ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
         <span className="text-sm">{label}</span>

@@ -95,7 +95,7 @@ export default function Dashboard() {
                 <h2 className="text-3xl font-black">5</h2>
                 <p className="text-[10px] mt-1 text-red-500 font-medium">↓ 25% vs last week</p>
               </div>
-              <div className="w-14 h-14 relative flex-shrink-0">
+              <div className="w-14 h-14 relative shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={miniPieData} innerRadius={18} outerRadius={25} paddingAngle={0} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
@@ -173,7 +173,7 @@ export default function Dashboard() {
             <h3 className="font-bold mb-6 flex items-center gap-2 text-white">
               <Clock size={16} className="text-yellow-500"/> Recent Activity
             </h3>
-            <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[420px]">
+            <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-105">
               <LogItem text="12 photos uploaded"    time="5m ago"  icon={Upload}       color="bg-indigo-500/20 text-indigo-400"/>
               <LogItem text="AI analysis complete"  time="10m ago" icon={CheckCircle}  color="bg-green-500/20 text-green-400"/>
               <LogItem text='New Album "Vacation"'  time="1h ago"  icon={FolderHeart}  color="bg-purple-500/20 text-purple-400"/>
@@ -210,7 +210,7 @@ export default function Dashboard() {
                   <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-green-400 border border-green-500/30">
                     {p.score} AI
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"/>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/90 via-transparent to-transparent"/>
                   <div className="absolute bottom-3 left-3">
                     <p className="text-xs font-bold text-white">{p.title}</p>
                     <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1 font-medium">
@@ -240,7 +240,7 @@ export default function Dashboard() {
 function MiniStat({ label, val, icon: Icon, color, bg }) {
   return (
     <div className="bg-[#161026] border border-gray-800 rounded-2xl p-4 flex items-center gap-4 hover:bg-[#1c1430] transition cursor-default">
-      <div className={`${bg} ${color} p-2.5 rounded-xl flex-shrink-0`}><Icon size={18}/></div>
+      <div className={`${bg} ${color} p-2.5 rounded-xl shrink-0`}><Icon size={18}/></div>
       <div className="overflow-hidden">
         <p className="text-[8px] text-gray-500 uppercase tracking-widest mb-0.5 whitespace-nowrap">{label}</p>
         <p className="text-lg font-bold leading-none">{val}</p>
@@ -252,7 +252,7 @@ function MiniStat({ label, val, icon: Icon, color, bg }) {
 function LogItem({ text, time, icon: Icon, color }) {
   return (
     <div className="flex gap-4">
-      <div className={`${color} p-2 rounded-lg h-fit flex-shrink-0`}><Icon size={14}/></div>
+      <div className={`${color} p-2 rounded-lg h-fit shrink-0`}><Icon size={14}/></div>
       <div className="min-w-0">
         <p className="text-xs font-bold leading-tight truncate text-white">{text}</p>
         <p className="text-[9px] text-gray-500 mt-1">{time}</p>

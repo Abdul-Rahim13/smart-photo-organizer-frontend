@@ -52,7 +52,7 @@ function FileRow({ file, onRemove }) {
         'border-gray-800 bg-[#1c1430]/50'}`}>
 
       {/* Thumbnail / icon */}
-      <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 overflow-hidden">
         {file.preview
           ? <img src={file.preview} alt={file.name} className="w-full h-full object-cover"/>
           : <FileImage size={18} className="text-gray-500"/>
@@ -73,7 +73,7 @@ function FileRow({ file, onRemove }) {
       </div>
 
       {/* Status badge */}
-      <span className={`hidden sm:flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full ${bg} ${color} flex-shrink-0`}>
+      <span className={`hidden sm:flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full ${bg} ${color} shrink-0`}>
         {file.status === 'uploading' && <Loader2 size={10} className="animate-spin"/>}
         {file.status === 'done'      && <CheckCircle2 size={10}/>}
         {file.status === 'error'     && <AlertCircle size={10}/>}
@@ -83,7 +83,7 @@ function FileRow({ file, onRemove }) {
       {/* Remove */}
       {file.status !== 'uploading' && (
         <button onClick={() => onRemove(file.id)}
-          className="text-gray-600 hover:text-red-400 transition cursor-pointer flex-shrink-0 p-1">
+          className="text-gray-600 hover:text-red-400 transition cursor-pointer shrink-0 p-1">
           <X size={14}/>
         </button>
       )}

@@ -146,7 +146,7 @@ function GridCard({ photo, selected, onSelect }) {
   }, []);
 
   return (
-    <div ref={ref} className={`bg-[#161026] rounded-[2rem] overflow-hidden border transition-all duration-300 group
+    <div ref={ref} className={`bg-[#161026] rounded-4xl overflow-hidden border transition-all duration-300 group
       ${selected ? 'border-indigo-500 shadow-lg shadow-indigo-500/20' : 'border-gray-800 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10'}`}>
       <div className={`h-52 ${photo.color} relative flex items-center justify-center overflow-hidden`}>
         {/* Checkbox */}
@@ -184,7 +184,7 @@ function GridCard({ photo, selected, onSelect }) {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0a19] via-transparent to-transparent opacity-70"/>
+        <div className="absolute inset-0 bg-linear-to-t from-[#0f0a19] via-transparent to-transparent opacity-70"/>
 
         {/* Title overlay */}
         <div className="absolute bottom-3 left-4 right-4">
@@ -240,23 +240,23 @@ function ListRow({ photo, selected, onSelect, isHeader }) {
   return (
     <div ref={ref}
       className={`grid grid-cols-[2rem_3.5rem_1fr_120px_80px_90px_80px_90px_2.5rem] gap-4 px-4 py-3.5 items-center border-b border-gray-800/40 transition-all duration-200 group cursor-pointer
-        ${selected ? 'bg-indigo-600/10' : 'hover:bg-white/[0.03]'}`}>
+        ${selected ? 'bg-indigo-600/10' : 'hover:bg-white/3'}`}>
 
       {/* Checkbox */}
       <button onClick={() => onSelect(photo.id)}
-        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer flex-shrink-0
+        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer shrink-0
           ${selected ? 'bg-indigo-600 border-indigo-500' : 'border-gray-700 hover:border-indigo-400'}`}>
         {selected && <Check size={10} className="text-white"/>}
       </button>
 
       {/* Preview thumbnail */}
-      <div className={`h-10 w-14 rounded-lg ${photo.color} flex items-center justify-center overflow-hidden flex-shrink-0`}>
+      <div className={`h-10 w-14 rounded-lg ${photo.color} flex items-center justify-center overflow-hidden shrink-0`}>
         <ImageIcon size={16} className="opacity-20 text-white"/>
       </div>
 
       {/* Name + star */}
       <div className="flex items-center gap-2 min-w-0">
-        <button onClick={() => setStarred(s => !s)} className={`flex-shrink-0 transition cursor-pointer ${starred ? 'text-yellow-400' : 'text-gray-700 hover:text-yellow-400'}`}>
+        <button onClick={() => setStarred(s => !s)} className={`shrink-0 transition cursor-pointer ${starred ? 'text-yellow-400' : 'text-gray-700 hover:text-yellow-400'}`}>
           <Star size={12} fill={starred ? 'currentColor' : 'none'}/>
         </button>
         <span className="text-sm font-semibold text-gray-100 truncate">{photo.title}</span>
@@ -295,7 +295,7 @@ function ListRow({ photo, selected, onSelect, isHeader }) {
       </div>
 
       {/* Actions */}
-      <div className="relative flex-shrink-0">
+      <div className="relative shrink-0">
         <button onClick={() => setMenuOpen(o => !o)}
           className="text-gray-600 hover:text-yellow-400 transition cursor-pointer opacity-0 group-hover:opacity-100">
           <MoreVertical size={16}/>
