@@ -58,7 +58,7 @@ const typeConfig = {
 function StatCard({ label, value, icon: Icon, iconBg, iconColor }) {
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-2xl p-5 flex items-center gap-4 hover:border-indigo-500/30 transition-all duration-300 cursor-default">
-      <div className={`${iconBg} ${iconColor} p-3 rounded-xl flex-shrink-0`}>
+      <div className={`${iconBg} ${iconColor} p-3 rounded-xl shrink-0`}>
         <Icon size={20} />
       </div>
       <div>
@@ -175,9 +175,9 @@ function AlbumRow({ album, onFavorite, onDelete }) {
   const TypeIcon = cfg.icon;
 
   return (
-    <div className="grid grid-cols-[2.5rem_1fr_110px_100px_110px_100px_2.5rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/[0.02] transition group cursor-default">
+    <div className="grid grid-cols-[2.5rem_1fr_110px_100px_110px_100px_2.5rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/2 transition group cursor-default">
       {/* Thumb */}
-      <div className={`w-9 h-9 rounded-xl ${album.thumb} flex items-center justify-center flex-shrink-0 text-lg`}>
+      <div className={`w-9 h-9 rounded-xl ${album.thumb} flex items-center justify-center shrink-0 text-lg`}>
         {album.cover}
       </div>
 
@@ -416,7 +416,7 @@ export default function AlbumsPage() {
       {/* ── SEARCH + CONTROLS ───────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         {/* Search */}
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative flex-1 min-w-55">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             value={search}

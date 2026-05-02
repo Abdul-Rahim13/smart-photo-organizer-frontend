@@ -63,7 +63,7 @@ const sortOptions = ["Name", "Photos", "Updated", "Confidence"];
 function StatCard({ label, value, icon: Icon, iconBg, iconColor }) {
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-2xl p-5 flex items-center gap-4 hover:border-indigo-500/30 transition-all duration-300 cursor-default group">
-      <div className={`${iconBg} ${iconColor} p-3 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform`}>
+      <div className={`${iconBg} ${iconColor} p-3 rounded-xl shrink-0 group-hover:scale-110 transition-transform`}>
         <Icon size={20} />
       </div>
       <div>
@@ -88,7 +88,7 @@ function SuggestionCard({ item }) {
   return (
     <div className={`${item.color} border border-white/5 rounded-2xl overflow-hidden flex items-stretch hover:border-indigo-500/30 transition-all duration-300 group cursor-default`}>
       {/* Emoji thumbnail */}
-      <div className={`w-20 ${item.accent} flex items-center justify-center flex-shrink-0 text-4xl select-none`}>
+      <div className={`w-20 ${item.accent} flex items-center justify-center shrink-0 text-4xl select-none`}>
         {item.emoji}
       </div>
       {/* Info */}
@@ -211,7 +211,7 @@ function SmartAlbumCard({ album }) {
           <p className="text-sm font-bold text-white truncate group-hover:text-indigo-300 transition-colors">
             {album.name}
           </p>
-          <ChevronRight size={14} className="text-gray-600 group-hover:text-indigo-400 transition-colors flex-shrink-0 mt-0.5" />
+          <ChevronRight size={14} className="text-gray-600 group-hover:text-indigo-400 transition-colors shrink-0 mt-0.5" />
         </div>
 
         <p className="text-[10px] text-gray-500 mt-0.5">{album.sub}</p>
@@ -236,8 +236,8 @@ function SmartAlbumRow({ album }) {
   };
 
   return (
-    <div className="grid grid-cols-[2.5rem_1fr_90px_90px_130px_110px_2rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/[0.02] transition group cursor-pointer">
-      <div className={`w-9 h-9 rounded-xl ${album.color} flex items-center justify-center text-xl flex-shrink-0`}>
+    <div className="grid grid-cols-[2.5rem_1fr_90px_90px_130px_110px_2rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/2 transition group cursor-pointer">
+      <div className={`w-9 h-9 rounded-xl ${album.color} flex items-center justify-center text-xl shrink-0`}>
         {album.emoji}
       </div>
       <div className="min-w-0">
@@ -444,14 +444,14 @@ export default function SmartAlbumsPage() {
 
       {/* ── FOOTER INFO ─────────────────────────────────────────────────── */}
       <div className="mt-8 flex items-center gap-3 bg-[#161026] border border-gray-800/50 rounded-2xl px-5 py-4">
-        <div className="bg-indigo-500/10 p-2 rounded-xl flex-shrink-0">
+        <div className="bg-indigo-500/10 p-2 rounded-xl shrink-0">
           <TrendingUp size={16} className="text-indigo-400" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-white">AI is continuously learning</p>
           <p className="text-[10px] text-gray-500">Smart Albums improve as more photos are added. Confidence scores update automatically.</p>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
           <span className="text-[10px] text-green-400 font-bold">Model Active</span>
         </div>

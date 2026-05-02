@@ -42,7 +42,7 @@ const filterTabs = [
 function StatCard({ label, value, icon: Icon, iconBg, iconColor }) {
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-2xl p-5 flex items-center gap-4 hover:border-red-500/20 transition-all duration-300 cursor-default group">
-      <div className={`${iconBg} ${iconColor} p-3 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform`}>
+      <div className={`${iconBg} ${iconColor} p-3 rounded-xl shrink-0 group-hover:scale-110 transition-transform`}>
         <Icon size={20} />
       </div>
       <div>
@@ -187,17 +187,17 @@ function TrashRow({ item, selected, onSelect, onRestore, onDelete }) {
   return (
     <div
       onClick={() => onSelect(item.id)}
-      className={`grid grid-cols-[2rem_2.5rem_1fr_110px_100px_80px_130px_5rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/[0.02] transition group cursor-pointer
+      className={`grid grid-cols-[2rem_2.5rem_1fr_110px_100px_80px_130px_5rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/2 transition group cursor-pointer
         ${selected ? 'bg-red-500/5' : ''}`}
     >
       {/* Checkbox */}
-      <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition
+      <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition
         ${selected ? 'bg-red-500 border-red-400' : 'border-gray-600 group-hover:border-gray-400'}`}>
         {selected && <X size={10} className="text-white" />}
       </div>
 
       {/* Thumb */}
-      <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center text-xl flex-shrink-0`}>
+      <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center text-xl shrink-0`}>
         {item.emoji}
       </div>
 
@@ -395,7 +395,7 @@ export default function TrashPage() {
       {/* ── WARNING BANNER ──────────────────────────────────────────────── */}
       {items.length > 0 && (
         <div className="flex items-start gap-3 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl px-5 py-4 mb-6">
-          <AlertTriangle size={18} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+          <AlertTriangle size={18} className="text-yellow-400 shrink-0 mt-0.5" />
           <div>
             <p className="text-xs font-bold text-yellow-300 mb-0.5">Photos in Trash</p>
             <p className="text-[11px] text-gray-400">
@@ -549,7 +549,7 @@ export default function TrashPage() {
       {/* ── INFO FOOTER ─────────────────────────────────────────────────── */}
       {items.length > 0 && (
         <div className="mt-8 flex items-center gap-3 bg-[#161026] border border-gray-800/50 rounded-2xl px-5 py-4">
-          <div className="bg-blue-500/10 p-2 rounded-xl flex-shrink-0">
+          <div className="bg-blue-500/10 p-2 rounded-xl shrink-0">
             <Info size={16} className="text-blue-400" />
           </div>
           <p className="text-[11px] text-gray-500">

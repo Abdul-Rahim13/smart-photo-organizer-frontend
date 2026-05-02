@@ -25,7 +25,7 @@ const navItems = [
 function SectionHeader({ title, desc, icon: Icon, iconBg, iconColor }) {
   return (
     <div className="flex items-start gap-3 mb-6 pb-5 border-b border-gray-800/60">
-      <div className={`${iconBg} ${iconColor} p-2.5 rounded-xl flex-shrink-0`}>
+      <div className={`${iconBg} ${iconColor} p-2.5 rounded-xl shrink-0`}>
         <Icon size={18} />
       </div>
       <div>
@@ -78,7 +78,7 @@ function Toggle({ checked, onChange, label, desc, danger }) {
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`flex-shrink-0 w-11 h-6 rounded-full border transition-all duration-300 cursor-pointer relative
+        className={`shrink-0 w-11 h-6 rounded-full border transition-all duration-300 cursor-pointer relative
           ${checked
             ? danger ? 'bg-red-500/20 border-red-500/40' : 'bg-indigo-500/20 border-indigo-500/40'
             : 'bg-gray-800 border-gray-700'}`}
@@ -117,7 +117,7 @@ function DangerZoneItem({ label, desc, btnLabel, btnIcon: Icon, onClick }) {
       </div>
       <button
         onClick={onClick}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-bold cursor-pointer transition flex-shrink-0"
+        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-bold cursor-pointer transition shrink-0"
       >
         {Icon && <Icon size={12} />} {btnLabel}
       </button>
@@ -134,7 +134,7 @@ function ProfileSection({ data, onChange }) {
 
       {/* Avatar */}
       <div className="flex items-center gap-5">
-        <div className="relative flex-shrink-0">
+        <div className="relative shrink-0">
           <div className="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-3xl font-black text-white select-none">
             {data.name?.charAt(0)?.toUpperCase() || "A"}
           </div>
@@ -429,7 +429,7 @@ function StorageSection({ data, onChange }) {
             { label: "Trash",   value: "3.1 GB",  color: "bg-red-500"     },
           ].map(({ label, value, color }) => (
             <div key={label} className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color}`} />
+              <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
               <div>
                 <p className="text-[10px] text-gray-500">{label}</p>
                 <p className="text-xs font-bold text-white">{value}</p>
@@ -550,7 +550,7 @@ export default function SettingsPage() {
       <div className="flex flex-col lg:flex-row gap-0">
 
         {/* ── SIDEBAR NAV ────────────────────────────────────────────────── */}
-        <aside className="lg:w-56 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800/60 p-4 lg:p-6 lg:min-h-[calc(100vh-73px)]">
+        <aside className="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800/60 p-4 lg:p-6 lg:min-h-[calc(100vh-73px)]">
           <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible">
             {navItems.map(item => {
               const Icon = item.icon;
@@ -562,7 +562,7 @@ export default function SettingsPage() {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer w-full text-left
                     ${isActive
                       ? `${item.bg} ${item.color} border border-current/20`
-                      : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.03]'}`}
+                      : 'text-gray-500 hover:text-gray-200 hover:bg-white/3'}`}
                 >
                   <Icon size={15} />
                   {item.label}
