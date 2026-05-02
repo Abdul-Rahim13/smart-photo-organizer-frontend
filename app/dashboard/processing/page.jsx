@@ -57,7 +57,7 @@ function CircularProgress({ percent, status }) {
 function StatCard({ label, value, icon: Icon, iconBg, iconColor }) {
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-2xl p-5 flex items-center gap-4">
-      <div className={`${iconBg} ${iconColor} p-3 rounded-xl flex-shrink-0`}>
+      <div className={`${iconBg} ${iconColor} p-3 rounded-xl shrink-0`}>
         <Icon size={20}/>
       </div>
       <div>
@@ -95,7 +95,7 @@ function QueueCard({ item }) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-3">
           <p className="text-sm font-bold text-white truncate">{item.title}</p>
-          <button className="text-gray-600 hover:text-gray-300 transition cursor-pointer flex-shrink-0">
+          <button className="text-gray-600 hover:text-gray-300 transition cursor-pointer shrink-0">
             <MoreVertical size={14}/>
           </button>
         </div>
@@ -123,9 +123,9 @@ function QueueRow({ item }) {
   const barColor = item.status === "complete" ? "bg-green-500" : item.status === "analyzing" ? "bg-blue-500" : "bg-yellow-500";
 
   return (
-    <div className="grid grid-cols-[2.5rem_1fr_120px_160px_80px_2rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/[0.02] transition group cursor-default">
+    <div className="grid grid-cols-[2.5rem_1fr_120px_160px_80px_2rem] gap-4 px-5 py-4 items-center border-b border-gray-800/40 hover:bg-white/2 transition group cursor-default">
       {/* Thumbnail */}
-      <div className={`w-9 h-9 rounded-lg ${item.color} flex items-center justify-center flex-shrink-0`}>
+      <div className={`w-9 h-9 rounded-lg ${item.color} flex items-center justify-center shrink-0`}>
         <ImageIcon size={14} className="opacity-30 text-white"/>
       </div>
 

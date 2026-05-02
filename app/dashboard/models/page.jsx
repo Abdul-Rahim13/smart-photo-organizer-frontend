@@ -106,7 +106,7 @@ const initialModels = [
 function StatCard({ label, value, icon: Icon, iconBg, iconColor, sub }) {
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-2xl p-5 flex items-center gap-4 hover:border-indigo-500/20 transition-all duration-300 cursor-default group">
-      <div className={`${iconBg} ${iconColor} p-3 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform`}>
+      <div className={`${iconBg} ${iconColor} p-3 rounded-xl shrink-0 group-hover:scale-110 transition-transform`}>
         <Icon size={20} />
       </div>
       <div>
@@ -158,7 +158,7 @@ function ModelCard({ model, onToggle, onInfo }) {
       {/* ── Model header ── */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className={`${model.iconBg} ${model.iconColor} p-2.5 rounded-xl flex-shrink-0`}>
+          <div className={`${model.iconBg} ${model.iconColor} p-2.5 rounded-xl shrink-0`}>
             <Icon size={18} />
           </div>
           <div className="min-w-0">
@@ -232,7 +232,7 @@ function ModelCard({ model, onToggle, onInfo }) {
         </button>
         <button
           onClick={() => onInfo(model)}
-          className="w-9 h-9 rounded-xl bg-[#0f0a19] border border-gray-800/50 text-gray-500 hover:text-white hover:border-gray-600 flex items-center justify-center transition cursor-pointer flex-shrink-0"
+          className="w-9 h-9 rounded-xl bg-[#0f0a19] border border-gray-800/50 text-gray-500 hover:text-white hover:border-gray-600 flex items-center justify-center transition cursor-pointer shrink-0"
         >
           <Info size={14} />
         </button>
@@ -287,7 +287,7 @@ function InfoModal({ model, onClose }) {
 
           {model.active && (
             <div className="bg-[#0f0a19] border border-gray-800/50 rounded-xl p-3 flex items-center gap-2">
-              <TrendingUp size={14} className="text-indigo-400 flex-shrink-0" />
+              <TrendingUp size={14} className="text-indigo-400 shrink-0" />
               <p className="text-xs text-gray-400">
                 Processed <span className="text-white font-bold">{model.processed.toLocaleString()}</span> images since last load
               </p>
@@ -448,7 +448,7 @@ export default function AIModelsPage() {
 
       {/* ── INFO FOOTER ─────────────────────────────────────────────────── */}
       <div className="flex items-start gap-3 bg-[#161026] border border-indigo-500/15 rounded-2xl px-5 py-4">
-        <div className="bg-indigo-500/10 p-2 rounded-xl flex-shrink-0 mt-0.5">
+        <div className="bg-indigo-500/10 p-2 rounded-xl shrink-0 mt-0.5">
           <Info size={15} className="text-indigo-400" />
         </div>
         <div>
