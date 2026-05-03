@@ -11,7 +11,7 @@ import {
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
 const albumsData = [
   {
-    id: 1, name: "Vacation 2024", description: "Beautiful moments from the celebration",
+    id: 1, name: "Vacation 2024", description: " moments from the celebration",
     photos: 156, type: "private", favorite: true,
     thumb: "bg-amber-800/60", thumbAccent: "bg-orange-700/40",
     cover: "🏖️", lastModified: "2 days ago", tags: ["travel", "beach"],
