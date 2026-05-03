@@ -137,7 +137,7 @@ export default function RegisterPage() {
 
       {/* ── LEFT PANEL — Animation ── */}
       <div className="hidden md:flex md:w-1/2 bg-violet-600 relative overflow-hidden items-center justify-center">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
         <div className="w-full h-full flex items-center justify-center">
           {data?.html ? (
             <ClientAnimation html={data.html} />
