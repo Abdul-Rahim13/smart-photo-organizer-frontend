@@ -1,5 +1,6 @@
 import { ReduxProvider } from "@/redux/provider";
 import './globals.css';
+import { Toaster } from "sonner";
 import PageLoader from "../components/PageLoader";
 import { Geist, Geist_Mono, Sora, DM_Sans } from "next/font/google";
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${dmSans.variable} antialiased`}>
         <ReduxProvider>
           <PageLoader />
+          <Toaster position="top-right" richColors />
           {children}
         </ReduxProvider>
       </body>
