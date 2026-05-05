@@ -1,11 +1,11 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "@/redux/slices/authSlice";
+import { registerUser, resetAuthState  } from "@/redux/slices/authSlice";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
-
 import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
 import { HiOutlineEye, HiOutlineEyeOff, HiOutlineUser } from "react-icons/hi";
 
@@ -47,13 +47,20 @@ const RegisterForm = dynamic(() =>
 
       if (loading) return; 
 
+      if (!formData.name || !formData.email || !formData.password) {
+        toast.error("All fields are required");
+        return;
+      } 
+
       if (!agreed) {
         toast.error("Please accept Terms & Conditions");
         return;
       }
 
+      toast.dismiss();
       toast.loading("Creating your account...");
 
+      
       dispatch(registerUser(formData));
     };
 
@@ -69,6 +76,8 @@ const RegisterForm = dynamic(() =>
           password: "",
         });
 
+        dispatch(resetAuthState());
+
         setTimeout(() => {
           router.push("/login");
         }, 1200);
@@ -78,7 +87,7 @@ const RegisterForm = dynamic(() =>
         toast.dismiss();
         toast.error(error?.message || error || "Registration failed");
       }
-    }, [registerSuccess, error, router]);
+    }, [registerSuccess, error, router, dispatch]);
 
     return (
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
@@ -185,7 +194,9 @@ const RegisterForm = dynamic(() =>
                 ? "bg-violet-600 border-violet-600"
                 : "border-gray-300 bg-white"
             }`}
-          />
+          >
+            {agreed && <span className="text-white text-[10px]">✓</span>}
+          </button>
           <p className="text-xs text-gray-500 leading-relaxed">
             I agree to the Terms & Conditions
           </p>
@@ -209,9 +220,9 @@ const RegisterForm = dynamic(() =>
         {/* Login */}
         <p className="text-xs text-gray-500 text-center mt-7">
           Already have an account?{" "}
-          <a href="/login" className="text-violet-600 font-semibold hover:underline">
+          <Link href="/login" className="text-violet-600 font-semibold hover:underline">
             Log in
-          </a>
+          </Link>
         </p>
       </form>
     );
