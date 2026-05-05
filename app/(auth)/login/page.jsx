@@ -55,10 +55,9 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
         password: "",
       });
 
-      dispatch(resetAuthState());
-
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/dashboard");
+        dispatch(resetAuthState());
       }, 1200);
     }
 
