@@ -1,22 +1,75 @@
 "use client";
-
+import { useRouter } from "next/navigation"; 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from 'next/link';
 import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import { loginUser, resetAuthState  } from "@/redux/slices/authSlice";
 
 const ClientAnimation = dynamic(
   () => Promise.resolve(({ html }) => <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: html }} />),
   { ssr: false }
 );
 
-// ✅ Entire form rendered client-only — kills all hydration errors from extensions
 const LoginForm = dynamic(() => Promise.resolve(function Form() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  const dispatch = useDispatch();
+  const {loading, error, loginSuccess} = useSelector((state) => state.auth)
+  const isSubmitting = loading;
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    toast.dismiss();   
+    toast.loading("Signing in...");
+
+    dispatch(loginUser(formData));
+  };
+
+  useEffect(() => {
+    if(loginSuccess) {
+      toast.dismiss();
+      toast.success("Login successful 🎉");
+
+      setFormData({
+        email: "",
+        password: "",
+      });
+
+      dispatch(resetAuthState());
+
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 1200);
+    }
+
+    if (error){
+      toast.dismiss();
+      toast.error(error?.message || error || "Login failed");
+    }
+  }, [loginSuccess, error, router, dispatch]);
 
   return (
-    <div className="w-full max-w-sm">
+    <form onSubmit={handleSubmit} className="w-full max-w-sm">
 
       {/* Logo */}
       <div className="flex items-center gap-3 mb-10">
@@ -37,7 +90,12 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
         <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Email address</label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><MailIcon /></span>
-          <input type="email" placeholder="you@example.com" className="w-full pl-9 pr-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
+          <input 
+          type="email" 
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="you@example.com" className="w-full pl-9 pr-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
         </div>
       </div>
 
@@ -46,7 +104,12 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
         <label className="block text-xs font-medium text-gray-600 mb-1.5 tracking-wide">Password</label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center"><LockIcon /></span>
-          <input type={showPassword ? "text" : "password"} placeholder="Enter your password" className="w-full pl-9 pr-10 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
+          <input 
+          type={showPassword ? "text" : "password"} 
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Enter your password" className="w-full pl-9 pr-10 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-500 transition placeholder:text-gray-400" />
           <button type="button" onClick={() => setShowPassword((p) => !p)} className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition">
             {showPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
           </button>
@@ -60,14 +123,17 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
         </Link>
       </div>
 
-      <Link href="/dashboard" className="block w-full">
-        <button className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3">
-         Sign in
-        </button>
-      </Link>
+      <button 
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3"
+        >
+          {loading ? "Signing in..." : "Sign in"}
+      </button>
       
       {/* Google */}
-      <button className="cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
+      <button
+      className="cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
         <GoogleIcon />
         Continue with Google
       </button>
@@ -78,7 +144,7 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
         <a href="/register" className="text-violet-600 font-semibold hover:underline">Sign up</a>
       </p>
 
-    </div>
+    </form>
   );
 }), { ssr: false });
 
@@ -112,7 +178,7 @@ export default function LoginPage() {
 
       {/* ── RIGHT PANEL ── */}
       <div className="hidden md:flex md:w-1/2 bg-violet-600 relative overflow-hidden items-center justify-center">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
         <div className="w-full h-full flex items-center justify-center">
           {data?.html ? (
             <ClientAnimation html={data.html} />

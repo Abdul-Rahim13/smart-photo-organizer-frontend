@@ -26,7 +26,7 @@ const RegisterForm = dynamic(() =>
 
     
     const dispatch = useDispatch();
-    const { loading, error, success } = useSelector((state) => state.auth);
+    const { loading, error, registerSuccess } = useSelector((state) => state.auth);
     const isSubmitting = loading;
     
     const [formData, setFormData] = useState({
@@ -57,9 +57,9 @@ const RegisterForm = dynamic(() =>
       dispatch(registerUser(formData));
     };
 
-    // SUCCESS / ERROR HANDLING (ONLY LOGIC)
+    // SUCCESS / ERROR HANDLING 
     useEffect(() => {
-      if (success) {
+      if (registerSuccess) {
         toast.dismiss(); 
         toast.success("Account created successfully 🎉");
 
@@ -78,7 +78,7 @@ const RegisterForm = dynamic(() =>
         toast.dismiss();
         toast.error(error?.message || error || "Registration failed");
       }
-    }, [success, error, router]);
+    }, [registerSuccess, error, router]);
 
     return (
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
