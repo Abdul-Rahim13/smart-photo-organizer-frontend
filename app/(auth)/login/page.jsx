@@ -126,7 +126,12 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
       <button 
           type="submit"
           disabled={isSubmitting}
-          className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-300 active:translate-y-0 active:shadow-none mb-3"
+          className={`w-full py-3 text-white text-sm font-bold tracking-wide rounded-xl transition
+            ${isSubmitting
+              ? "bg-violet-400 cursor-not-allowed"
+              : "bg-violet-600 hover:bg-violet-700 active:bg-violet-800 cursor-pointer"
+            }
+          `}
         >
           {loading ? "Signing in..." : "Sign in"}
       </button>

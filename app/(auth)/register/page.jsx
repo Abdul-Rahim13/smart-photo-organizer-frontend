@@ -60,7 +60,7 @@ const RegisterForm = dynamic(() =>
       toast.dismiss();
       toast.loading("Creating your account...");
 
-      
+
       dispatch(registerUser(formData));
     };
 
@@ -206,7 +206,12 @@ const RegisterForm = dynamic(() =>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="cursor-pointer w-full py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold tracking-wide rounded-xl transition"
+          className={`w-full py-3 text-white text-sm font-bold tracking-wide rounded-xl transition
+            ${isSubmitting
+              ? "bg-violet-400 cursor-not-allowed"
+              : "bg-violet-600 hover:bg-violet-700 active:bg-violet-800 cursor-pointer"
+            }
+          `}
         >
           {loading ? "Creating..." : "Create account"}
         </button>
