@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }) {
     const localToken =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    // NOT logged in 
+    // NOT logged in → redirect
     if (!token && !localToken) {
       toast.error("Please login to access dashboard");
       router.replace("/login");
