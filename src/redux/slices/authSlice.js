@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
 
-// ===================== REGISTER =====================
+
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (userData, { rejectWithValue }) => {
@@ -40,8 +40,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-
-// ===================== LOGIN =====================
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (userData, { rejectWithValue }) => {
@@ -82,14 +80,102 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async ({ email }, { rejectWithValue }) => {
+    try {
 
-// ===================== INITIAL STATE (PERSIST FIX) =====================
+      const res = await axios.post(
+        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/forget-password",
+        { email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to send OTP"
+      );
+
+    }
+  }
+);
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+
+      const res = await axios.post(
+        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/verify-otp",
+        { email, otp },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      return rejectWithValue(
+        error.response?.data?.message || "OTP verification failed"
+      );
+
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ email, otp, password }, { rejectWithValue }) => {
+    try {
+
+      const res = await axios.post(
+        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/reset-password",
+        {
+          email,
+          otp,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      return rejectWithValue(
+        error.response?.data?.message || "Password reset failed"
+      );
+
+    }
+  }
+);
+
+
 const initialState = {
   loading: false,
   error: null,
   registerSuccess: false,
   loginSuccess: false,
   message: null,
+  forgotSuccess: false,
+  otpVerified: false,
+  resetSuccess: false,
 
   user:
     typeof window !== "undefined"
@@ -100,10 +186,11 @@ const initialState = {
     typeof window !== "undefined"
       ? localStorage.getItem("token")
       : null,
+
 };
 
 
-// ===================== SLICE =====================
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -160,11 +247,62 @@ const authSlice = createSlice({
           localStorage.setItem("token", action.payload.token);
         }
       })
+
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.loginSuccess = false;
-      });
+      })
+
+      // FORGOT PASSWORD
+      .addCase(forgotPassword.pending, (state) => {
+          state.loading = true;
+          state.error = null;
+      })
+
+      .addCase(forgotPassword.fulfilled, (state) => {
+          state.loading = false;
+          state.forgotSuccess = true;
+      })
+
+      .addCase(forgotPassword.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+      })
+
+
+      // VERIFY OTP
+      .addCase(verifyOtp.pending, (state) => {
+          state.loading = true;
+          state.error = null;
+      })
+
+      .addCase(verifyOtp.fulfilled, (state) => {
+          state.loading = false;
+          state.otpVerified = true;
+      })
+
+      .addCase(verifyOtp.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+      })
+
+
+      // RESET PASSWORD
+      .addCase(resetPassword.pending, (state) => {
+          state.loading = true;
+          state.error = null;
+      })
+
+      .addCase(resetPassword.fulfilled, (state) => {
+          state.loading = false;
+          state.resetSuccess = true;
+      })
+
+      .addCase(resetPassword.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+      })
   },
 });
 
