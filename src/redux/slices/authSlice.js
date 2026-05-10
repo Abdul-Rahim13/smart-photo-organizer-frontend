@@ -166,6 +166,27 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+export const googleLoginUser = createAsyncThunk(
+    "auth/googleLoginUser",
+    async ({ token }, { rejectWithValue }) => {
+        try {
+            const res = await axios.post(
+                "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/google",
+                { token },
+                { headers: { "Content-Type": "application/json" } }
+            );
+            return {
+                success: true,
+                message: res.data.message,
+                user: res.data.data,
+                token: res.data.token,
+            };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Google login failed");
+        }
+    }
+);
+
 
 const initialState = {
   loading: false,
@@ -254,7 +275,7 @@ const authSlice = createSlice({
         state.loginSuccess = false;
       })
 
-      // FORGOT PASSWORD
+      //  =================  FORGOT PASSWORD  ================= 
       .addCase(forgotPassword.pending, (state) => {
           state.loading = true;
           state.error = null;
@@ -271,7 +292,7 @@ const authSlice = createSlice({
       })
 
 
-      // VERIFY OTP
+      //  =================  VERIFY OTP  ================= 
       .addCase(verifyOtp.pending, (state) => {
           state.loading = true;
           state.error = null;
@@ -288,7 +309,7 @@ const authSlice = createSlice({
       })
 
 
-      // RESET PASSWORD
+      //  =================  RESET PASSWORD ================= 
       .addCase(resetPassword.pending, (state) => {
           state.loading = true;
           state.error = null;
@@ -300,6 +321,30 @@ const authSlice = createSlice({
       })
 
       .addCase(resetPassword.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+      })
+
+      //  ================= GOOGLE LOGIN ================= 
+      .addCase(googleLoginUser.pending, (state) => {
+          state.loading = true;
+          state.error = null;
+      })
+
+      .addCase(googleLoginUser.fulfilled, (state, action) => {
+          state.loading = false;
+          state.loginSuccess = true;
+          state.message = action.payload.message;
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+
+          if (typeof window !== "undefined") {
+              localStorage.setItem("user", JSON.stringify(action.payload.user));
+              localStorage.setItem("token", action.payload.token);
+          }
+      })
+
+      .addCase(googleLoginUser.rejected, (state, action) => {
           state.loading = false;
           state.error = action.payload;
       })
