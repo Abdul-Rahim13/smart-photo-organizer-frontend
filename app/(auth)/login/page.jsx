@@ -7,7 +7,8 @@ import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { loginUser, resetAuthState  } from "@/redux/slices/authSlice";
+import { loginUser, resetAuthState, googleLoginUser   } from "@/redux/slices/authSlice";
+import { useGoogleLogin } from '@react-oauth/google';
 
 const ClientAnimation = dynamic(
   () => Promise.resolve(({ html }) => <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: html }} />),
@@ -66,6 +67,31 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
       toast.error(error?.message || error || "Login failed");
     }
   }, [loginSuccess, error, router, dispatch]);
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (response) => {
+        toast.dismiss();
+        toast.loading("Signing in with Google...");
+
+        const result = await dispatch(googleLoginUser({ token: response.access_token }));
+
+        if (googleLoginUser.fulfilled.match(result)) {
+            toast.dismiss();
+            toast.success("Logged in with Google 🎉");
+            setTimeout(() => {
+                router.push("/dashboard");
+                dispatch(resetAuthState());
+            }, 1200);
+        } else {
+            toast.dismiss();
+            toast.error(result.payload || "Google login failed");
+        }
+    },
+    onError: () => {
+        toast.dismiss();
+        toast.error("Google login failed");
+    },
+});
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-sm">
@@ -137,9 +163,12 @@ const LoginForm = dynamic(() => Promise.resolve(function Form() {
       
       {/* Google */}
       <button
-      className="cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
+        type="button"
+        onClick={() => handleGoogleLogin()}
+        disabled={loading}
+        className="mt-5 cursor-pointer w-full py-3 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-xl flex items-center justify-center gap-2.5 transition">
         <GoogleIcon />
-        Continue with Google
+        {loading ? "Signing in..." : "Continue with Google"}
       </button>
 
       {/* Register */}
