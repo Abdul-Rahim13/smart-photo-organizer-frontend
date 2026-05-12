@@ -1,6 +1,10 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import { resetAuthState } from '@/redux/slices/authSlice';
+import { toast } from 'sonner';
 import { 
   AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, BarChart, Bar
@@ -8,7 +12,8 @@ import {
 import { 
   Image as ImageIcon, Upload, Search, Bell, User,
   AlertCircle, CheckCircle, Star, Plus, Wand2, 
-  LayoutGrid, Clock, FolderHeart, HardDrive, Users
+  LayoutGrid, Clock, FolderHeart, HardDrive, Users,
+  LogOut, Settings, Shield, ChevronDown
 } from 'lucide-react';
 
 // --- MOCK DATA ---
@@ -31,6 +36,37 @@ const recentPhotos = [
 ];
 
 export default function Dashboard() {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const dropdownRef = useRef(null);
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { user } = useSelector((state) => state.auth);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogoutConfirm = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    dispatch(resetAuthState());
+    setShowLogoutModal(false);
+    toast.success("Logged out successfully");
+    router.replace("/login");
+  };
+
+  const userName = user?.name || "Abdul";
+  const userEmail = user?.email || "user@example.com";
+  const userInitials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+
   return (
     <div className="flex h-screen bg-[#0f0a19] text-gray-100 overflow-hidden">
 
@@ -46,6 +82,7 @@ export default function Dashboard() {
               <span className="text-[10px] text-green-500 font-bold uppercase tracking-wider">System Active</span>
             </div>
           </div>
+
           <div className="flex items-center gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16}/>
@@ -58,18 +95,90 @@ export default function Dashboard() {
             <button className="cursor-pointer p-2.5 bg-[#1c1430] border border-gray-800 rounded-xl text-gray-400 hover:text-white transition">
               <Bell size={18}/>
             </button>
-            <button className="cursor-pointer flex items-center gap-2 bg-[#4f46e5] px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#4338ca] transition shadow-lg shadow-indigo-600/20">
-              <User size={16}/> Abdul
-            </button>
+
+            {/* PROFILE BUTTON WITH DROPDOWN */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="cursor-pointer flex items-center gap-2 bg-[#4f46e5] px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#4338ca] transition shadow-lg shadow-indigo-600/20"
+              >
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-black">
+                  {userInitials}
+                </div>
+                {userName.split(" ")[0]}
+                <ChevronDown size={14} className={`transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}/>
+              </button>
+
+              {/* DROPDOWN MENU */}
+              {showDropdown && (
+                <div className="absolute right-0 top-12 w-64 bg-[#1c1430] border border-gray-700/50 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                  
+                  {/* User Info */}
+                  <div className="px-4 py-4 border-b border-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-sm font-black text-indigo-300">
+                        {userInitials}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{userName}</p>
+                        <p className="text-[10px] text-gray-400 truncate">{userEmail}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 bg-green-500/10 px-2.5 py-1.5 rounded-lg border border-green-500/20 w-fit">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full"/>
+                      <span className="text-[10px] text-green-400 font-bold">Active Session</span>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="p-2">
+                    <DropdownItem
+                      icon={User}
+                      label="My Profile"
+                      sub="View your profile"
+                      onClick={() => { setShowDropdown(false); router.push("/dashboard/settings"); }}
+                    />
+                    <DropdownItem
+                      icon={Settings}
+                      label="Settings"
+                      sub="App preferences"
+                      onClick={() => { setShowDropdown(false); router.push("/dashboard/settings"); }}
+                    />
+                    <DropdownItem
+                      icon={Shield}
+                      label="Security"
+                      sub="Password & privacy"
+                      onClick={() => { setShowDropdown(false); router.push("/dashboard/settings"); }}
+                    />
+                  </div>
+
+                  {/* Logout */}
+                  <div className="p-2 border-t border-gray-800">
+                    <button
+                      onClick={() => { setShowDropdown(false); setShowLogoutModal(true); }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition cursor-pointer group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                        <LogOut size={15} className="text-red-400"/>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-bold">Logout</p>
+                        <p className="text-[10px] text-gray-500">Sign out of your account</p>
+                      </div>
+                    </button>
+                  </div>
+
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        <h1 className="text-2xl font-bold mb-2">Welcome Back, Abdul! 👋</h1>
+        <h1 className="text-2xl font-bold mb-2">Welcome Back, {userName.split(" ")[0]}! 👋</h1>
         <p className="text-gray-400 text-sm mb-8 font-light">Here's what's happening with your photos today.</p>
 
         {/* TOP STATS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Total Photos */}
           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
             <div className="flex justify-between items-start">
               <div>
@@ -87,7 +196,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Blurry Photos */}
           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 relative overflow-hidden">
             <div className="flex justify-between items-start">
               <div>
@@ -110,7 +218,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* AI Processed */}
           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
             <div className="flex justify-between items-start">
               <div>
@@ -132,8 +239,6 @@ export default function Dashboard() {
         {/* MIDDLE SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="col-span-1 lg:col-span-2 space-y-6">
-
-            {/* Upload Activity Chart */}
             <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="font-bold">Upload Activity</h3>
@@ -159,26 +264,24 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Mini Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MiniStat label="Faces Detected" val="47"     icon={Users}     color="text-indigo-400" bg="bg-indigo-400/10"/>
-              <MiniStat label="Smart Albums"   val="12"     icon={LayoutGrid} color="text-green-400"  bg="bg-green-400/10"/>
-              <MiniStat label="Avg Quality"    val="92%"    icon={Star}       color="text-yellow-400" bg="bg-yellow-400/10"/>
-              <MiniStat label="Storage Used"   val="2.4 GB" icon={HardDrive}  color="text-orange-400" bg="bg-orange-400/10"/>
+              <MiniStat label="Faces Detected" val="47"     icon={Users}      color="text-indigo-400" bg="bg-indigo-400/10"/>
+              <MiniStat label="Smart Albums"   val="12"     icon={LayoutGrid}  color="text-green-400"  bg="bg-green-400/10"/>
+              <MiniStat label="Avg Quality"    val="92%"    icon={Star}        color="text-yellow-400" bg="bg-yellow-400/10"/>
+              <MiniStat label="Storage Used"   val="2.4 GB" icon={HardDrive}   color="text-orange-400" bg="bg-orange-400/10"/>
             </div>
           </div>
 
-          {/* Recent Activity */}
           <div className="bg-[#161026] border border-gray-800 rounded-3xl p-6 flex flex-col">
             <h3 className="font-bold mb-6 flex items-center gap-2 text-white">
               <Clock size={16} className="text-yellow-500"/> Recent Activity
             </h3>
             <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-105">
-              <LogItem text="12 photos uploaded"    time="5m ago"  icon={Upload}       color="bg-indigo-500/20 text-indigo-400"/>
-              <LogItem text="AI analysis complete"  time="10m ago" icon={CheckCircle}  color="bg-green-500/20 text-green-400"/>
-              <LogItem text='New Album "Vacation"'  time="1h ago"  icon={FolderHeart}  color="bg-purple-500/20 text-purple-400"/>
-              <LogItem text="Cleanup completed"     time="2h ago"  icon={Users}        color="bg-red-500/20 text-red-400"/>
-              <LogItem text="Auto-enhanced 8 pics"  time="3h ago"  icon={Wand2}        color="bg-yellow-500/20 text-yellow-400"/>
+              <LogItem text="12 photos uploaded"    time="5m ago"  icon={Upload}      color="bg-indigo-500/20 text-indigo-400"/>
+              <LogItem text="AI analysis complete"  time="10m ago" icon={CheckCircle} color="bg-green-500/20 text-green-400"/>
+              <LogItem text='New Album "Vacation"'  time="1h ago"  icon={FolderHeart} color="bg-purple-500/20 text-purple-400"/>
+              <LogItem text="Cleanup completed"     time="2h ago"  icon={Users}       color="bg-red-500/20 text-red-400"/>
+              <LogItem text="Auto-enhanced 8 pics"  time="3h ago"  icon={Wand2}       color="bg-yellow-500/20 text-yellow-400"/>
             </div>
             <button className="w-full mt-6 py-3 border border-gray-800 text-[10px] font-bold text-yellow-500 rounded-xl uppercase tracking-widest hover:bg-yellow-500/5 transition cursor-pointer">
               View All Logs →
@@ -188,7 +291,7 @@ export default function Dashboard() {
 
         {/* QUICK ACTIONS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <ActionButton icon={Plus}       label="New Upload"    primary />
+          <ActionButton icon={Plus}        label="New Upload"    primary />
           <ActionButton icon={FolderHeart} label="Create Album" />
           <ActionButton icon={Users}       label="Review Trash" />
           <ActionButton icon={Wand2}       label="AI Optimize"  />
@@ -225,6 +328,38 @@ export default function Dashboard() {
 
       </main>
 
+      {/* LOGOUT CONFIRMATION MODAL */}
+      {showLogoutModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.6)' }}
+        >
+          <div className="bg-[#1c1430] border border-gray-700/50 rounded-2xl p-8 w-full max-w-sm mx-4 shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-5">
+              <LogOut size={24} className="text-red-400" />
+            </div>
+            <h2 className="text-white text-xl font-bold text-center mb-2">Sign out?</h2>
+            <p className="text-gray-400 text-sm text-center leading-relaxed mb-8">
+              Are you sure you want to logout? You will need to sign in again to access your dashboard.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-3 rounded-xl border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800/50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogoutConfirm}
+                className="flex-1 py-3 rounded-xl bg-red-500/90 hover:bg-red-500 text-white text-sm font-bold transition cursor-pointer"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -236,6 +371,23 @@ export default function Dashboard() {
 }
 
 // ─── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function DropdownItem({ icon: Icon, label, sub, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-white/5 transition cursor-pointer group"
+    >
+      <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/20 transition">
+        <Icon size={15} className="text-gray-400 group-hover:text-indigo-400 transition"/>
+      </div>
+      <div className="text-left">
+        <p className="text-xs font-bold text-white">{label}</p>
+        <p className="text-[10px] text-gray-500">{sub}</p>
+      </div>
+    </button>
+  );
+}
 
 function MiniStat({ label, val, icon: Icon, color, bg }) {
   return (
