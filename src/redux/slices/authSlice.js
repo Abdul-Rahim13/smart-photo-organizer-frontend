@@ -14,7 +14,7 @@ export const registerUser = createAsyncThunk(
       }
 
       const res = await axios.post(
-        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/register",
+        "https://smart-photo-backend-production.up.railway.app/api/auth/register",
         { name, email, password },
         {
           headers: { "Content-Type": "application/json" },
@@ -51,7 +51,7 @@ export const loginUser = createAsyncThunk(
       }
 
       const res = await axios.post(
-        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/login",
+        "https://smart-photo-backend-production.up.railway.app/api/auth/login",
         { email, password },
         {
           headers: { "Content-Type": "application/json" },
@@ -86,7 +86,7 @@ export const forgotPassword = createAsyncThunk(
     try {
 
       const res = await axios.post(
-        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/forget-password",
+        "https://smart-photo-backend-production.up.railway.app/api/auth/forget-password",
         { email },
         {
           headers: {
@@ -114,7 +114,7 @@ export const verifyOtp = createAsyncThunk(
     try {
 
       const res = await axios.post(
-        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/verify-otp",
+        "https://smart-photo-backend-production.up.railway.app/api/auth/verify-otp",
         { email, otp },
         {
           headers: {
@@ -141,7 +141,7 @@ export const resetPassword = createAsyncThunk(
     try {
 
       const res = await axios.post(
-        "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/reset-password",
+        "https://smart-photo-backend-production.up.railway.app/api/auth/reset-password",
         {
           email,
           otp,
@@ -171,7 +171,7 @@ export const googleLoginUser = createAsyncThunk(
     async ({ token }, { rejectWithValue }) => {
         try {
             const res = await axios.post(
-                "https://smart-photo-organizer-backend-production.up.railway.app/api/auth/google",
+                "https://smart-photo-backend-production.up.railway.app/api/auth/google",
                 { token },
                 { headers: { "Content-Type": "application/json" } }
             );
