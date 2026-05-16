@@ -5,17 +5,26 @@ export const uploadPhotoAction = createAsyncThunk(
   'photos/upload',
   async ({ file, category }, { rejectWithValue }) => {
     try {
+
+      const token = localStorage.getItem('token'); 
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('images', file);
       formData.append('category', category);
 
-      // Change this URL to your actual backend address
-      const response = await axios.post('https://smart-photo-backend-production.up.railway.app/api/photos/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await axios.post(
+        'https://smart-photo-backend-production.up.railway.app/api/photos/upload',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Server Upload Failed");
+      return rejectWithValue(err.response?.data?.message || 'Server Upload Failed');
     }
   }
 );

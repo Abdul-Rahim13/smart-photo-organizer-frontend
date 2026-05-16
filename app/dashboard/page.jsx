@@ -1,20 +1,15 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
-import { resetAuthState } from '@/redux/slices/authSlice';
-import { toast } from 'sonner';
+import React from 'react';
 import { 
   AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 import { 
-  Image as ImageIcon, Upload, Search, Bell, User,
-  AlertCircle, CheckCircle, Star, Plus, Wand2, 
-  LayoutGrid, Clock, FolderHeart, HardDrive, Users,
-  LogOut, Settings, Shield, ChevronDown
+  Image as ImageIcon, Upload, AlertCircle, CheckCircle, Star, Plus, Wand2, 
+  LayoutGrid, Clock, FolderHeart, HardDrive, Users
 } from 'lucide-react';
+import TopBar from '../../components/TopBar';
 
 // --- MOCK DATA ---
 const uploadData = [
@@ -36,145 +31,22 @@ const recentPhotos = [
 ];
 
 export default function Dashboard() {
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const dropdownRef = useRef(null);
-  const dispatch = useDispatch();
-  const router = useRouter();
-  const { user } = useSelector((state) => state.auth);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogoutConfirm = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    dispatch(resetAuthState());
-    setShowLogoutModal(false);
-    toast.success("Logged out successfully");
-    router.replace("/login");
-  };
-
-  const userName = user?.name || "Abdul";
-  const userEmail = user?.email || "user@example.com";
-  const userInitials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-
   return (
     <div className="flex h-screen bg-[#0f0a19] text-gray-100 overflow-hidden">
 
       {/* SCROLLABLE MAIN CONTENT */}
       <main className="flex-1 h-full overflow-y-auto custom-scrollbar p-8">
 
-        {/* HEADER */}
-        <header className="flex flex-wrap justify-between items-center mb-10 gap-4">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-bold">Dashboard</h2>
-            <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/>
-              <span className="text-[10px] text-green-500 font-bold uppercase tracking-wider">System Active</span>
-            </div>
-          </div>
+        {/* ── TOP BAR ─────────────────────────────────────────────── */}
+        <TopBar
+          title="Dashboard"
+          showStatus={true}
+          statusText="System Active"
+          searchPlaceholder="Search photos, albums, or tags..."
+        />
 
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16}/>
-              <input
-                type="text"
-                placeholder="Search photos, albums, or tags..."
-                className="bg-[#1c1430] border border-gray-800 rounded-xl py-2 pl-10 pr-4 text-xs w-48 md:w-64 outline-none focus:border-indigo-500 transition"
-              />
-            </div>
-            <button className="cursor-pointer p-2.5 bg-[#1c1430] border border-gray-800 rounded-xl text-gray-400 hover:text-white transition">
-              <Bell size={18}/>
-            </button>
-
-            {/* PROFILE BUTTON WITH DROPDOWN */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="cursor-pointer flex items-center gap-2 bg-[#4f46e5] px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#4338ca] transition shadow-lg shadow-indigo-600/20"
-              >
-                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-black">
-                  {userInitials}
-                </div>
-                {userName.split(" ")[0]}
-                <ChevronDown size={14} className={`transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}/>
-              </button>
-
-              {/* DROPDOWN MENU */}
-              {showDropdown && (
-                <div className="absolute right-0 top-12 w-64 bg-[#1c1430] border border-gray-700/50 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                  
-                  {/* User Info */}
-                  <div className="px-4 py-4 border-b border-gray-800">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-sm font-black text-indigo-300">
-                        {userInitials}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{userName}</p>
-                        <p className="text-[10px] text-gray-400 truncate">{userEmail}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 bg-green-500/10 px-2.5 py-1.5 rounded-lg border border-green-500/20 w-fit">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full"/>
-                      <span className="text-[10px] text-green-400 font-bold">Active Session</span>
-                    </div>
-                  </div>
-
-                  {/* Menu Items */}
-                  <div className="p-2">
-                    <DropdownItem
-                      icon={User}
-                      label="My Profile"
-                      sub="View your profile"
-                      onClick={() => { setShowDropdown(false); router.push("/dashboard/settings"); }}
-                    />
-                    <DropdownItem
-                      icon={Settings}
-                      label="Settings"
-                      sub="App preferences"
-                      onClick={() => { setShowDropdown(false); router.push("/dashboard/settings"); }}
-                    />
-                    <DropdownItem
-                      icon={Shield}
-                      label="Security"
-                      sub="Password & privacy"
-                      onClick={() => { setShowDropdown(false); router.push("/dashboard/settings"); }}
-                    />
-                  </div>
-
-                  {/* Logout */}
-                  <div className="p-2 border-t border-gray-800">
-                    <button
-                      onClick={() => { setShowDropdown(false); setShowLogoutModal(true); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition cursor-pointer group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
-                        <LogOut size={15} className="text-red-400"/>
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-bold">Logout</p>
-                        <p className="text-[10px] text-gray-500">Sign out of your account</p>
-                      </div>
-                    </button>
-                  </div>
-
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <h1 className="text-2xl font-bold mb-2">Welcome Back, {userName.split(" ")[0]}! 👋</h1>
+        {/* WELCOME */}
+        <h1 className="text-2xl font-bold mb-2">Welcome Back! 👋</h1>
         <p className="text-gray-400 text-sm mb-8 font-light">Here's what's happening with your photos today.</p>
 
         {/* TOP STATS ROW */}
@@ -276,12 +148,12 @@ export default function Dashboard() {
             <h3 className="font-bold mb-6 flex items-center gap-2 text-white">
               <Clock size={16} className="text-yellow-500"/> Recent Activity
             </h3>
-            <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-105">
-              <LogItem text="12 photos uploaded"    time="5m ago"  icon={Upload}      color="bg-indigo-500/20 text-indigo-400"/>
-              <LogItem text="AI analysis complete"  time="10m ago" icon={CheckCircle} color="bg-green-500/20 text-green-400"/>
-              <LogItem text='New Album "Vacation"'  time="1h ago"  icon={FolderHeart} color="bg-purple-500/20 text-purple-400"/>
-              <LogItem text="Cleanup completed"     time="2h ago"  icon={Users}       color="bg-red-500/20 text-red-400"/>
-              <LogItem text="Auto-enhanced 8 pics"  time="3h ago"  icon={Wand2}       color="bg-yellow-500/20 text-yellow-400"/>
+            <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-96">
+              <LogItem text="12 photos uploaded"    time="5m ago"  icon={Upload}       color="bg-indigo-500/20 text-indigo-400"/>
+              <LogItem text="AI analysis complete"  time="10m ago" icon={CheckCircle}  color="bg-green-500/20 text-green-400"/>
+              <LogItem text='New Album "Vacation"'  time="1h ago"  icon={FolderHeart}  color="bg-purple-500/20 text-purple-400"/>
+              <LogItem text="Cleanup completed"     time="2h ago"  icon={Users}        color="bg-red-500/20 text-red-400"/>
+              <LogItem text="Auto-enhanced 8 pics"  time="3h ago"  icon={Wand2}        color="bg-yellow-500/20 text-yellow-400"/>
             </div>
             <button className="w-full mt-6 py-3 border border-gray-800 text-[10px] font-bold text-yellow-500 rounded-xl uppercase tracking-widest hover:bg-yellow-500/5 transition cursor-pointer">
               View All Logs →
@@ -313,7 +185,7 @@ export default function Dashboard() {
                   <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-green-400 border border-green-500/30">
                     {p.score} AI
                   </div>
-                  <div className="absolute inset-0 bg-linear-to-t from-black/90 via-transparent to-transparent"/>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"/>
                   <div className="absolute bottom-3 left-3">
                     <p className="text-xs font-bold text-white">{p.title}</p>
                     <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-1 font-medium">
@@ -328,38 +200,6 @@ export default function Dashboard() {
 
       </main>
 
-      {/* LOGOUT CONFIRMATION MODAL */}
-      {showLogoutModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.6)' }}
-        >
-          <div className="bg-[#1c1430] border border-gray-700/50 rounded-2xl p-8 w-full max-w-sm mx-4 shadow-2xl">
-            <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-5">
-              <LogOut size={24} className="text-red-400" />
-            </div>
-            <h2 className="text-white text-xl font-bold text-center mb-2">Sign out?</h2>
-            <p className="text-gray-400 text-sm text-center leading-relaxed mb-8">
-              Are you sure you want to logout? You will need to sign in again to access your dashboard.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="flex-1 py-3 rounded-xl border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800/50 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogoutConfirm}
-                className="flex-1 py-3 rounded-xl bg-red-500/90 hover:bg-red-500 text-white text-sm font-bold transition cursor-pointer"
-              >
-                Yes, Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -371,23 +211,6 @@ export default function Dashboard() {
 }
 
 // ─── SUB-COMPONENTS ──────────────────────────────────────────────────────────
-
-function DropdownItem({ icon: Icon, label, sub, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-white/5 transition cursor-pointer group"
-    >
-      <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/20 transition">
-        <Icon size={15} className="text-gray-400 group-hover:text-indigo-400 transition"/>
-      </div>
-      <div className="text-left">
-        <p className="text-xs font-bold text-white">{label}</p>
-        <p className="text-[10px] text-gray-500">{sub}</p>
-      </div>
-    </button>
-  );
-}
 
 function MiniStat({ label, val, icon: Icon, color, bg }) {
   return (
