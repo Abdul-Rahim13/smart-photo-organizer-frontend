@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs';
 export const classifyImage = async (imageElement) => {
     try {
         // 1. Load the model from the public folder
-        const model = await tf.loadLayersModel('/public/model/model.json');
+        const model = await tf.loadLayersModel('/model/model.json');
 
         // 2. Process the image (MobileNet requires 224x224)
         const tensor = tf.browser.fromPixels(imageElement)
