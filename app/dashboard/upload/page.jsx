@@ -24,24 +24,22 @@ const IcStar   = ({ size, className }) => <Icon size={size} className={className
 const IcZap    = ({ size, className }) => <Icon size={size} className={className} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />;
 const IcDisk   = ({ size, className }) => <Icon size={size} className={className} d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />;
 const IcLoader = ({ size, className }) => <Icon size={size} className={`animate-spin ${className}`} d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />;
-const IcReact   = ({ size, className }) => (
-  <svg width={size} height={size} viewBox="-11.5 -10.23174 23 20.46348" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <circle cx="0" cy="0" r="2.05" fill="currentColor" />
-    <ellipse rx="10" ry="4.05" fill="none" stroke="currentColor" strokeWidth="0.8" />
-    <ellipse rx="10" ry="4.05" fill="none" stroke="currentColor" strokeWidth="0.8" transform="rotate(60)" />
-    <ellipse rx="10" ry="4.05" fill="none" stroke="currentColor" strokeWidth="0.8" transform="rotate(-60)" />
-  </svg>
-);
 
 // ── Constants ─────────────────────────────────────────────────────────────
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE  = 10 * 1024 * 1024;
-const LABELS    = ['Events', 'Outdoor', 'Indoor'];
+
+// ── AI Label Maps ─────────────────────────────────────────────────────────
+const ENV_LABELS    = ['Events', 'Outdoor', 'Indoor'];
+const PEOPLE_LABELS = ['Solo', 'Two persons', 'Group'];
 
 const CATEGORIES = {
-  Events:  { icon: '🎉', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)',  border: 'rgba(245,158,11,0.4)',  desc: 'Parties, gatherings, celebrations', gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)' },
-  Outdoor: { icon: '🌿', color: '#10b981', bg: 'rgba(16,185,129,0.15)',  border: 'rgba(16,185,129,0.4)',  desc: 'Nature, parks, landscapes',          gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
-  Indoor:  { icon: '🏠', color: '#6366f1', bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.4)', desc: 'Rooms, interior spaces',              gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+  Events:    { icon: '🎉', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)',  border: 'rgba(245,158,11,0.4)',  desc: 'Gatherings & Parties', gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)' },
+  Outdoor:   { icon: '🌿', color: '#10b981', bg: 'rgba(16,185,129,0.15)',  border: 'rgba(16,185,129,0.4)',  desc: 'Nature & Landscapes',    gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
+  Indoor:    { icon: '🏠', color: '#6366f1', bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.4)', desc: 'Rooms & Interiors',     gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+  'Solo':       { icon: '👤', color: '#38bdf8', bg: 'rgba(56,189,248,0.15)', border: 'rgba(56,189,248,0.4)' },
+  'Two persons': { icon: '👥', color: '#ec4899', bg: 'rgba(236,72,153,0.15)', border: 'rgba(236,72,153,0.4)' },
+  'Group':       { icon: '👪', color: '#a855f7', bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.4)' }
 };
 
 const formatSize = (bytes) => {
@@ -87,13 +85,14 @@ function ToastContainer({ toasts, onRemove }) {
 // ── Category Badge ────────────────────────────────────────────────────────
 function CategoryBadge({ category, style: extraStyle = {} }) {
   if (!category) return null;
-  const cat = CATEGORIES[category];
+  const cat = CATEGORIES[category] || { icon: '📂', color: '#94a3b8', bg: 'rgba(148,163,184,0.15)', border: 'rgba(148,163,184,0.4)' };
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
       padding: '4px 10px', borderRadius: 20,
       background: cat.bg, border: `1px solid ${cat.border}`,
       color: cat.color, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+      whiteSpace: 'nowrap',
       ...extraStyle,
     }}>
       {cat.icon} {category}
@@ -125,7 +124,7 @@ function StatusChip({ status }) {
   );
 }
 
-// ── Grid File Card ────────────────────────────────────────────────────────
+// ── Grid File Card (With Embedded Confidence Vectors) ─────────────────────
 function FileCard({ file, onRemove }) {
   const [hovered, setHovered] = useState(false);
 
@@ -150,7 +149,7 @@ function FileCard({ file, onRemove }) {
         </div>
       )}
 
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.2) 50%,transparent 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.3) 60%,transparent 100%)' }} />
 
       <div style={{ position: 'absolute', top: 8, left: 8, right: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <StatusChip status={file.status} />
@@ -176,8 +175,39 @@ function FileCard({ file, onRemove }) {
       )}
 
       <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8 }}>
-        {file.category && <CategoryBadge category={file.category} style={{ marginBottom: 4 }} />}
-        <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {/* Dual dynamic badge matrix */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+          {file.category && <CategoryBadge category={file.category} />}
+          {file.peopleTag && <CategoryBadge category={file.peopleTag} />}
+        </div>
+        
+        {/* Real-time confidence metrics panel */}
+        {(file.envBreakdown || file.peopleBreakdown) && (
+          <div style={{ 
+            background: 'rgba(4,2,14,0.75)', 
+            padding: '5px 7px', 
+            borderRadius: 8, 
+            marginBottom: 6,
+            fontSize: 10,
+            border: '1px solid rgba(255,255,255,0.06)',
+            backdropFilter: 'blur(4px)'
+          }}>
+            {file.envBreakdown && (
+              <div style={{ color: '#a5b4fc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ opacity: 0.85 }}>Environment ({file.envBreakdown[0].label}):</span>
+                <span style={{ fontWeight: 800, fontFamily: 'monospace' }}>{file.envBreakdown[0].confidence}%</span>
+              </div>
+            )}
+            {file.peopleBreakdown && (
+              <div style={{ color: '#f472b6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 3 }}>
+                <span style={{ opacity: 0.85 }}>Population ({file.peopleBreakdown[0].label}):</span>
+                <span style={{ fontWeight: 800, fontFamily: 'monospace' }}>{file.peopleBreakdown[0].confidence}%</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {file.name}
         </p>
       </div>
@@ -221,24 +251,24 @@ function StatCard({ icon: IconComp, label, value, unit, accent }) {
   );
 }
 
-// ── Category Summary Card ─────────────────────────────────────────────────
+// ── Taxonomy Summary Card ─────────────────────────────────────────────────
 function CategorySummaryCard({ category, count, files }) {
-  const cat = CATEGORIES[category];
+  const cat = CATEGORIES[category] || { icon: '📂', color: '#fff', gradient: 'linear-gradient(135deg,#64748b,#475569)', desc: 'Image cluster' };
   const [exp, setExp] = useState(false);
-  const catFiles = files.filter(f => f.category === category && f.status === 'done');
+  const catFiles = files.filter(f => (f.category === category || f.peopleTag === category) && f.status === 'done');
 
   return (
     <div
-      style={{ background: cat.bg, border: `1px solid ${cat.border}`, borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s' }}
+      style={{ background: cat.bg || 'rgba(255,255,255,0.02)', border: `1px solid ${cat.border || 'rgba(255,255,255,0.08)'}`, borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s' }}
       onClick={() => setExp(x => !x)}
     >
       <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: cat.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: cat.gradient || 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
           {cat.icon}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: cat.color }}>{category}</p>
-          <p style={{ margin: '2px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{cat.desc}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{cat.desc || 'Sorted results'}</p>
         </div>
         <div style={{ textAlign: 'right' }}>
           <span style={{ fontSize: 24, fontWeight: 800, color: cat.color, lineHeight: 1 }}>{count}</span>
@@ -246,10 +276,10 @@ function CategorySummaryCard({ category, count, files }) {
         </div>
       </div>
       {exp && catFiles.length > 0 && (
-        <div style={{ borderTop: `1px solid ${cat.border}`, padding: '10px 12px' }}>
+        <div style={{ borderTop: `1px solid ${cat.border || 'rgba(255,255,255,0.08)'}`, padding: '10px 12px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(56px,1fr))', gap: 6 }}>
             {catFiles.map(f => (
-              <div key={f.id} style={{ aspectRatio: '1/1', borderRadius: 8, overflow: 'hidden', border: `1px solid ${cat.border}` }}>
+              <div key={f.id} style={{ aspectRatio: '1/1', borderRadius: 8, overflow: 'hidden', border: `1px solid ${cat.border || 'rgba(255,255,255,0.08)'}` }}>
                 {f.preview && <img src={f.preview} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
             ))}
@@ -260,14 +290,18 @@ function CategorySummaryCard({ category, count, files }) {
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────
+// ── Main Page Component ───────────────────────────────────────────────────
 export default function UploadPage() {
   const dispatch = useDispatch();
   const [files, setFiles]               = useState([]);
   const [dragging, setDragging]         = useState(false);
   const [uploading, setUploading]       = useState(false);
-  const [model, setModel]               = useState(null);
+  
+  // Custom Machine Learning Structural States
+  const [envModel, setEnvModel]         = useState(null);
+  const [peopleModel, setPeopleModel]   = useState(null);
   const [modelLoading, setModelLoading] = useState(true);
+  
   const [viewMode, setViewMode]         = useState('grid');
   const [toasts, setToasts]             = useState([]);
   const inputRef = useRef(null);
@@ -280,19 +314,36 @@ export default function UploadPage() {
 
   const removeToast = useCallback((id) => setToasts(p => p.filter(t => t.id !== id)), []);
 
+  // ── STEP 1: LOAD DUAL CUSTOM AI CORES (WITH MOUNT TRACKER CLEANUP) ──
   useEffect(() => {
+    let isMounted = true;
+
     (async () => {
       try {
-        const m = await tf.loadLayersModel('/model/model.json');
-        setModel(m);
-        setModelLoading(false);
-        addToast('AI model loaded — ready to classify!', 'success');
+        // Load Core Layer 1: Environment Metrics
+        const mEnv = await tf.loadLayersModel('/model/model.json');
+        if (isMounted) setEnvModel(mEnv);
+
+        // Load Core Layer 2: Population Structures (People Folder Structure)
+        const mPeople = await tf.loadLayersModel('/model/people/model.json');
+        if (isMounted) setPeopleModel(mPeople);
+
+        if (isMounted) {
+          setModelLoading(false);
+          addToast('Dual custom AI cores synchronized!', 'success');
+        }
       } catch (e) {
-        console.error(e);
-        setModelLoading(false);
-        addToast('Failed to load AI model', 'error');
+        console.error("TensorFlow system initialization failure:", e);
+        if (isMounted) {
+          setModelLoading(false);
+          addToast('Failed to load local AI model files', 'error');
+        }
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [addToast]);
 
   const readyCount = files.filter(f => f.status === 'waiting').length;
@@ -300,65 +351,117 @@ export default function UploadPage() {
   const errorCount = files.filter(f => f.status === 'error').length;
   const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
 
-  const categoryCounts = LABELS.reduce((acc, l) => {
-    acc[l] = files.filter(f => f.category === l).length;
+  const combineLabels = [...ENV_LABELS, ...PEOPLE_LABELS];
+  const categoryCounts = combineLabels.reduce((acc, l) => {
+    acc[l] = files.filter(f => f.category === l || f.peopleTag === l).length;
     return acc;
   }, {});
 
   const addFiles = useCallback((incoming) => {
     const valid = Array.from(incoming).map(f => {
-      if (!ACCEPTED.includes(f.type)) { addToast(`${f.name} — unsupported type`, 'warning'); return null; }
-      if (f.size > MAX_SIZE)          { addToast(`${f.name} exceeds 10 MB`, 'warning'); return null; }
-      return { id: `${f.name}-${Date.now()}-${Math.random()}`, name: f.name, size: f.size, type: f.type, rawFile: f, status: 'waiting', progress: 0, category: null, preview: URL.createObjectURL(f) };
+      if (!ACCEPTED.includes(f.type)) { addToast(`${f.name} — unsupported file type`, 'warning'); return null; }
+      if (f.size > MAX_SIZE)          { addToast(`${f.name} exceeds 10 MB limit`, 'warning'); return null; }
+      return { 
+        id: `${f.name}-${Date.now()}-${Math.random()}`, 
+        name: f.name, size: f.size, type: f.type, rawFile: f, 
+        status: 'waiting', progress: 0, 
+        category: null, peopleTag: null,
+        envBreakdown: null, peopleBreakdown: null,
+        preview: URL.createObjectURL(f) 
+      };
     }).filter(Boolean);
-    if (valid.length) { setFiles(p => [...p, ...valid]); addToast(`${valid.length} image${valid.length > 1 ? 's' : ''} added`, 'success'); }
+    if (valid.length) { setFiles(p => [...p, ...valid]); addToast(`${valid.length} image${valid.length > 1 ? 's' : ''} added to queue`, 'success'); }
   }, [addToast]);
 
-  const removeFile = (id) => { setFiles(p => p.filter(f => f.id !== id)); addToast('File removed', 'info'); };
+  const removeFile = (id) => { setFiles(p => p.filter(f => f.id !== id)); addToast('File removed from queue', 'info'); };
   const clearAll   = ()   => { setFiles([]); addToast('All files cleared', 'info'); };
 
+  // ── STEP 2: DUAL-LAYER CONFIDENCE INFERENCE PIPELINE ──
   const startUpload = async () => {
     if (!readyCount) return;
-    if (!model) { addToast('AI model still loading…', 'warning'); return; }
+    if (!envModel || !peopleModel) { addToast('Neural processing engines loading…', 'warning'); return; }
     setUploading(true);
     const waiting = files.filter(f => f.status === 'waiting');
     let ok = 0;
 
     for (const fileObj of waiting) {
-      setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'uploading', progress: 30 } : f));
+      setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'uploading', progress: 20 } : f));
       try {
         const img = new Image();
         img.src = fileObj.preview;
-        const category = await new Promise((res, rej) => {
+        
+        const analysis = await new Promise((res, rej) => {
           img.onload = async () => {
             try {
+              // Normalize image dimensions to standard 224x224 execution arrays
               const tensor = tf.tidy(() =>
                 tf.browser.fromPixels(img).resizeNearestNeighbor([224, 224]).toFloat().div(127.5).sub(1).expandDims()
               );
-              const preds = await model.predict(tensor).data();
-              tensor.dispose();
-              res(LABELS[Array.from(preds).indexOf(Math.max(...preds))]);
+
+              // Engine Prediction Core 1: Context Environment Location
+              const envPreds = await envModel.predict(tensor).data();
+              const envArray = Array.from(envPreds);
+              const maxEnvIdx = envArray.indexOf(Math.max(...envArray));
+              const detectedEnv = ENV_LABELS[maxEnvIdx];
+              
+              // Map out complete environment structural arrays sorted by highest confidence score
+              const envBreakdown = ENV_LABELS.map((label, idx) => ({
+                label,
+                confidence: Math.round(envArray[idx] * 100)
+              })).sort((a, b) => b.confidence - a.confidence);
+
+              setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, progress: 60 } : f));
+
+              // Engine Prediction Core 2: Population Multi-density Vectors
+              const peoplePreds = await peopleModel.predict(tensor).data();
+              const peopleArray = Array.from(peoplePreds);
+              const maxPeopleIdx = peopleArray.indexOf(Math.max(...peopleArray));
+              const detectedPeople = PEOPLE_LABELS[maxPeopleIdx];
+
+              // Map out population structural density values sorted by highest confidence score
+              const peopleBreakdown = PEOPLE_LABELS.map((label, idx) => ({
+                label,
+                confidence: Math.round(peopleArray[idx] * 100)
+              })).sort((a, b) => b.confidence - a.confidence);
+
+              tensor.dispose(); // Prevent client browser memory overhead
+              res({ detectedEnv, detectedPeople, envBreakdown, peopleBreakdown });
             } catch (e) { rej(e); }
           };
-          img.onerror = () => rej('Image load failed');
+          img.onerror = () => rej('Image loading failure');
         });
 
-        await dispatch(uploadPhotoAction({ file: fileObj.rawFile, category })).unwrap();
-        setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'done', progress: 100, category } : f));
-        addToast(`${fileObj.name} → ${CATEGORIES[category].icon} ${category}`, 'success');
+        // ── STEP 3: DISPATCH VECTOR CLASSIFICATIONS TO REDUX CORE BACKEND ──
+        await dispatch(uploadPhotoAction({ 
+          file: fileObj.rawFile, 
+          category: analysis.detectedEnv,    
+          peopleTag: analysis.detectedPeople 
+        })).unwrap();
+
+        setFiles(p => p.map(f => f.id === fileObj.id ? { 
+          ...f, 
+          status: 'done', 
+          progress: 100, 
+          category: analysis.detectedEnv,
+          peopleTag: analysis.detectedPeople,
+          envBreakdown: analysis.envBreakdown,
+          peopleBreakdown: analysis.peopleBreakdown
+        } : f));
+
+        addToast(`${fileObj.name} routed to system database`, 'success');
         ok++;
       } catch (err) {
+        console.error("Deep analysis tracking exception for file:", fileObj.name, err);
         setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'error' } : f));
-        addToast(`Failed: ${fileObj.name}`, 'error');
+        addToast(`Deep analysis failed: ${fileObj.name}`, 'error');
       }
     }
     setUploading(false);
-    if (ok > 0) addToast(`${ok} photo${ok > 1 ? 's' : ''} uploaded & classified!`, 'success');
+    if (ok > 0) addToast(`${ok} files processed, verified, and safely recorded!`, 'success');
   };
 
-  const hasDoneCategories = LABELS.some(l => categoryCounts[l] > 0);
+  const hasDoneCategories = combineLabels.some(l => categoryCounts[l] > 0);
 
-  // AI status pill injected into TopBar via rightExtra
   const aiStatusPill = (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 7,
@@ -373,7 +476,7 @@ export default function UploadPage() {
         animation: modelLoading ? 'pulse 1s infinite' : 'none',
       }} />
       <span style={{ fontSize: 11, fontWeight: 700, color: modelLoading ? '#f59e0b' : '#10b981', letterSpacing: '0.04em' }}>
-        {modelLoading ? 'LOADING AI' : 'AI ONLINE'}
+        {modelLoading ? 'SYNCING AI' : 'AI DUAL NETWORKS ONLINE'}
       </span>
     </div>
   );
@@ -382,39 +485,26 @@ export default function UploadPage() {
     <div style={{ minHeight: '100vh', background: 'linear-gradient(145deg,#040210 0%,#0b0820 40%,#0f0c1e 100%)', fontFamily: "'DM Sans',system-ui,sans-serif", color: '#e2e8f0' }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      {/* ── TOP BAR ──────────────────────────────────────────────────── */}
-      <div style={{
-        background: 'rgba(4,2,16,0.85)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-
+      {/* ── HEADER NAVIGATION TOP BAR ── */}
+      <div style={{ background: 'rgba(4,2,16,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ padding: '16px 32px' }}>
-          <TopBar
-            title="Upload Photos"
-            showStatus={false}
-            searchPlaceholder="Search photos…"
-            rightExtra={aiStatusPill}
-          />
+          <TopBar title="Upload Smart Photos" showStatus={false} searchPlaceholder="Search files…" rightExtra={aiStatusPill} />
         </div>
       </div>
 
-      {/* ── PAGE BODY (FULLY SCROLLABLE) ────────────────────────────────── */}
+      {/* ── CORE LAYOUT FRAME ── */}
       <main style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px 80px' }}>
-
-        {/* Page title */}
         <div style={{ marginBottom: 36 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <div style={{ width: 4, height: 28, borderRadius: 2, background: 'linear-gradient(to bottom,#6366f1,#8b5cf6)' }} />
-            <h2 style={{ margin: 0, fontSize: 30, fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.03em' }}>
-              Upload &amp; Classify
-            </h2>
+            <h2 style={{ margin: 0, fontSize: 30, fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.03em' }}>Upload &amp; Extract</h2>
           </div>
           <p style={{ margin: 0, marginLeft: 16, fontSize: 14, color: '#475569' }}>
-            Drop your photos — our AI automatically sorts them into Events, Outdoor &amp; Indoor
+            Drop files — our customized deep networks simultaneously resolve environment contexts &amp; population structures.
           </p>
         </div>
 
-        {/* Stats */}
+        {/* Dynamic Tracking Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 32 }}>
           <StatCard icon={IcUpload} label="Ready"      value={readyCount}  accent="#6366f1" />
           <StatCard icon={IcCheck}  label="Completed"  value={doneCount}   accent="#10b981" />
@@ -422,11 +512,9 @@ export default function UploadPage() {
           <StatCard icon={IcDisk}   label="Total Size" value={formatSize(totalBytes).split(' ')[0]} unit={formatSize(totalBytes).split(' ')[1] || 'B'} accent="#f59e0b" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: hasDoneCategories ? '1fr 300px' : '1fr', gap: 24 }}>
-
-          {/* Left */}
+        <div style={{ display: 'grid', gridTemplateColumns: hasDoneCategories ? '1fr 320px' : '1fr', gap: 24 }}>
+          {/* Main Drag-Drop Interaction Frame */}
           <div>
-            {/* Drop zone */}
             <div
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
@@ -442,7 +530,6 @@ export default function UploadPage() {
               }}
             >
               <input ref={inputRef} type="file" multiple accept={ACCEPTED.join(',')} style={{ display: 'none' }} onChange={e => addFiles(e.target.files)} />
-
               <div style={{
                 width: 72, height: 72, borderRadius: 20, margin: '0 auto 20px',
                 background: dragging ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
@@ -453,21 +540,18 @@ export default function UploadPage() {
               }}>
                 <IcUpload size={32} />
               </div>
-
               <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: dragging ? '#818cf8' : '#94a3b8' }}>
-                {dragging ? 'Release to add photos' : 'Drop photos here or click to browse'}
+                {dragging ? 'Release to add files' : 'Drop smart photos here or click to browse'}
               </h3>
-              <p style={{ margin: '0 0 24px', fontSize: 13, color: '#334155' }}>
-                JPEG, PNG, GIF, WebP · max 10 MB each
-              </p>
+              <p style={{ margin: '0 0 24px', fontSize: 13, color: '#334155' }}>JPEG, PNG, GIF, WebP · max 10 MB each</p>
             </div>
 
-            {/* File list */}
+            {/* Managed Active Queue Grid */}
             {files.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Your Files</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Queue</span>
                     <span style={{ padding: '3px 10px', borderRadius: 20, background: 'rgba(99,102,241,0.2)', color: '#818cf8', fontSize: 11, fontWeight: 700 }}>{files.length}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -496,24 +580,24 @@ export default function UploadPage() {
                       </button>
                     )}
 
-                    <button onClick={startUpload} disabled={!readyCount || uploading || !model} style={{
+                    <button onClick={startUpload} disabled={!readyCount || uploading || !envModel || !peopleModel} style={{
                       display: 'flex', alignItems: 'center', gap: 7,
                       padding: '8px 18px', borderRadius: 10, border: 'none',
-                      background: readyCount && !uploading && model ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(255,255,255,0.06)',
-                      color: readyCount && !uploading && model ? '#fff' : '#334155',
+                      background: readyCount && !uploading && envModel && peopleModel ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(255,255,255,0.06)',
+                      color: readyCount && !uploading && envModel && peopleModel ? '#fff' : '#334155',
                       fontSize: 13, fontWeight: 700,
-                      cursor: readyCount && !uploading && model ? 'pointer' : 'not-allowed',
+                      cursor: readyCount && !uploading && envModel && peopleModel ? 'pointer' : 'not-allowed',
                       transition: 'all 0.2s',
-                      boxShadow: readyCount && !uploading && model ? '0 4px 14px rgba(99,102,241,0.35)' : 'none',
+                      boxShadow: readyCount && !uploading && envModel && peopleModel ? '0 4px 14px rgba(99,102,241,0.35)' : 'none',
                     }}>
-                      {uploading ? <><IcLoader size={14} /> Analyzing…</> : <><IcZap size={14} /> {model ? `Upload ${readyCount}` : 'Loading AI…'}</>}
+                      {uploading ? <><IcLoader size={14} /> Analyzing Structural Vectors…</> : <><IcZap size={14} /> {envModel && peopleModel ? `Upload ${readyCount}` : 'Mounting Tensors…'}</>}
                     </button>
                   </div>
                 </div>
 
                 <div style={{ padding: 20, maxHeight: 'calc(100vh - 380px)', overflowY: 'auto' }}>
                   {viewMode === 'grid' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(130px,1fr))', gap: 14 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: 14 }}>
                       {files.map(f => <FileCard key={f.id} file={f} onRemove={removeFile} />)}
                     </div>
                   ) : (
@@ -535,7 +619,10 @@ export default function UploadPage() {
                             <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                               <span style={{ fontSize: 11, color: '#475569' }}>{formatSize(f.size)}</span>
-                              {f.category && <CategoryBadge category={f.category} />}
+                              <div style={{ display: 'flex', gap: 4 }}>
+                                {f.category && <CategoryBadge category={f.category} />}
+                                {f.peopleTag && <CategoryBadge category={f.peopleTag} />}
+                              </div>
                             </div>
                           </div>
                           <StatusChip status={f.status} />
@@ -559,68 +646,22 @@ export default function UploadPage() {
             )}
           </div>
 
-          {/* Right — classifications */}
+          {/* Right Container: Taxonomy Sidebar Summary */}
           {hasDoneCategories && (
             <div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <IcStar size={16} style={{ color: '#6366f1' }} />
-                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Classifications
-                  </h3>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {LABELS.map(label => categoryCounts[label] > 0 && (
-                    <CategorySummaryCard key={label} category={label} count={categoryCounts[label]} files={files} />
-                  ))}
-                </div>
-
-                {doneCount > 0 && (
-                  <div style={{ marginTop: 20, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: '16px 18px' }}>
-                    <p style={{ margin: '0 0 12px', fontSize: 12, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      Breakdown
-                    </p>
-                    {LABELS.map(label => {
-                      const count = categoryCounts[label];
-                      const pct   = doneCount > 0 ? Math.round((count / doneCount) * 100) : 0;
-                      const cat   = CATEGORIES[label];
-                      return count > 0 ? (
-                        <div key={label} style={{ marginBottom: 10, cursor: 'pointer' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                            <span style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 5 }}>
-                              <span>{cat.icon}</span> {label}
-                            </span>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: cat.color }}>{pct}%</span>
-                          </div>
-                          <div style={{ height: 5, borderRadius: 10, background: 'rgba(255,255,255,0.06)' }}>
-                            <div style={{ height: '100%', borderRadius: 10, background: cat.gradient, width: `${pct}%`, transition: 'width 0.6s ease' }} />
-                          </div>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <IcStar size={16} style={{ color: '#6366f1' }} />
+                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Unified Taxonomy</h3>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {combineLabels.map(label => categoryCounts[label] > 0 && (
+                  <CategorySummaryCard key={label} category={label} count={categoryCounts[label]} files={files} />
+                ))}
               </div>
             </div>
           )}
         </div>
       </main>
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom,#4f46e5,#7c3aed); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom,#6366f1,#8b5cf6); }
-        @keyframes toastIn     { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes pulse       { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-        @keyframes popIn       { from { transform: scale(0); opacity: 0; } 60% { transform: scale(1.25); } to { transform: scale(1); opacity: 1; } }
-        @keyframes reactShift { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
-        button, input { font-family: inherit; }
-        @media (max-width: 700px) { main { padding: 24px 16px 60px !important; } }
-      `}</style>
     </div>
   );
 }
