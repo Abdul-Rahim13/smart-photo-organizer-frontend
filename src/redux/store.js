@@ -9,6 +9,6 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Required for handling File objects
+      serializableCheck: false, 
     }),
 });

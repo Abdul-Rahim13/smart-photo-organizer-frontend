@@ -3,14 +3,14 @@ import axios from 'axios';
 
 export const uploadPhotoAction = createAsyncThunk(
   'photos/upload',
-  async ({ file, category }, { rejectWithValue }) => {
+  async ({ file, category, hasPeople }, { rejectWithValue }) => {
     try {
-
       const token = localStorage.getItem('token'); 
 
       const formData = new FormData();
       formData.append('images', file);
       formData.append('category', category);
+      formData.append('hasPeople', hasPeople); 
 
       const response = await axios.post(
         'https://smart-photo-backend-production.up.railway.app/api/photos/upload',
@@ -41,7 +41,7 @@ const photoSlice = createSlice({
     builder
       .addCase(uploadPhotoAction.pending, (state) => { 
         state.loading = true; 
-    })
+      })
       .addCase(uploadPhotoAction.fulfilled, (state, action) => {
         state.loading = false;
         state.gallery.push(action.payload);
