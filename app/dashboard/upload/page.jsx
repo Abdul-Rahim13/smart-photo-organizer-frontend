@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { uploadPhotoAction } from '../../../src/redux/slices/photoSlice';
-import * as tf from '@tensorflow/tfjs';
 import TopBar from '../../../components/TopBar';
 
 // ── Icons ─────────────────────────────────────────────────────────────────
@@ -29,7 +28,12 @@ const IcLoader = ({ size, className }) => <Icon size={size} className={`animate-
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE  = 10 * 1024 * 1024;
 
-// ── AI Label Maps ─────────────────────────────────────────────────────────
+// ── HUGGING FACE SETTINGS ──────────────────────────────────────────────────
+// Replace these with your actual Hugging Face model IDs (or generic endpoints like "google/vit-base-patch16-224")
+const HF_ENV_MODEL    = "username/your-environment-model"; 
+const HF_PEOPLE_MODEL = "username/your-people-density-model";
+const HF_API_TOKEN    = "hf_YOUR_HUGGINGFACE_ACCESS_TOKEN"; 
+
 const ENV_LABELS    = ['Events', 'Outdoor', 'Indoor'];
 const PEOPLE_LABELS = ['Solo', 'Two persons', 'Group'];
 
@@ -124,7 +128,7 @@ function StatusChip({ status }) {
   );
 }
 
-// ── Grid File Card (With Embedded Confidence Vectors) ─────────────────────
+// ── Grid File Card ────────────────────────────────────────────────────────
 function FileCard({ file, onRemove }) {
   const [hovered, setHovered] = useState(false);
 
@@ -175,13 +179,11 @@ function FileCard({ file, onRemove }) {
       )}
 
       <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8 }}>
-        {/* Dual dynamic badge matrix */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
           {file.category && <CategoryBadge category={file.category} />}
           {file.peopleTag && <CategoryBadge category={file.peopleTag} />}
         </div>
         
-        {/* Real-time confidence metrics panel */}
         {(file.envBreakdown || file.peopleBreakdown) && (
           <div style={{ 
             background: 'rgba(4,2,14,0.75)', 
@@ -293,17 +295,12 @@ function CategorySummaryCard({ category, count, files }) {
 // ── Main Page Component ───────────────────────────────────────────────────
 export default function UploadPage() {
   const dispatch = useDispatch();
-  const [files, setFiles]               = useState([]);
-  const [dragging, setDragging]         = useState(false);
-  const [uploading, setUploading]       = useState(false);
+  const [files, setFiles]         = useState([]);
+  const [dragging, setDragging]   = useState(false);
+  const [uploading, setUploading] = useState(false);
   
-  // Custom Machine Learning Structural States
-  const [envModel, setEnvModel]         = useState(null);
-  const [peopleModel, setPeopleModel]   = useState(null);
-  const [modelLoading, setModelLoading] = useState(true);
-  
-  const [viewMode, setViewMode]         = useState('grid');
-  const [toasts, setToasts]             = useState([]);
+  const [viewMode, setViewMode]   = useState('grid');
+  const [toasts, setToasts]       = useState([]);
   const inputRef = useRef(null);
 
   const addToast = useCallback((message, type = 'info') => {
@@ -313,38 +310,6 @@ export default function UploadPage() {
   }, []);
 
   const removeToast = useCallback((id) => setToasts(p => p.filter(t => t.id !== id)), []);
-
-  // ── STEP 1: LOAD DUAL CUSTOM AI CORES (WITH MOUNT TRACKER CLEANUP) ──
-  useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      try {
-        // Load Core Layer 1: Environment Metrics
-        const mEnv = await tf.loadLayersModel('/model/model.json');
-        if (isMounted) setEnvModel(mEnv);
-
-        // Load Core Layer 2: Population Structures (People Folder Structure)
-        const mPeople = await tf.loadLayersModel('/model/people/model.json');
-        if (isMounted) setPeopleModel(mPeople);
-
-        if (isMounted) {
-          setModelLoading(false);
-          addToast('Dual custom AI cores synchronized!', 'success');
-        }
-      } catch (e) {
-        console.error("TensorFlow system initialization failure:", e);
-        if (isMounted) {
-          setModelLoading(false);
-          addToast('Failed to load local AI model files', 'error');
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [addToast]);
 
   const readyCount = files.filter(f => f.status === 'waiting').length;
   const doneCount  = files.filter(f => f.status === 'done').length;
@@ -376,123 +341,104 @@ export default function UploadPage() {
   const removeFile = (id) => { setFiles(p => p.filter(f => f.id !== id)); addToast('File removed from queue', 'info'); };
   const clearAll   = ()   => { setFiles([]); addToast('All files cleared', 'info'); };
 
-  // ── STEP 2: DUAL-LAYER CONFIDENCE INFERENCE PIPELINE ──
+  // ── NEW HELPER: QUERY HUGGING FACE INFERENCE ENDPOINT DIRECTLY ──
+  const callHuggingFace = async (modelId, imageFile) => {
+    const response = await fetch(
+      `https://api-inference.huggingface.co/models/${modelId}`,
+      {
+        headers: { Authorization: `Bearer ${HF_API_TOKEN}` },
+        method: "POST",
+        body: imageFile,
+      }
+    );
+    if (!response.ok) throw new Error(`Hugging Face error: ${response.statusText}`);
+    return await response.json();
+  };
+
+  // ── REFACTORED PIPELINE USING HUGGING FACE INSTEAD OF TENSORFLOW ──
   const startUpload = async () => {
     if (!readyCount) return;
-    if (!envModel || !peopleModel) { addToast('Neural processing engines loading…', 'warning'); return; }
     setUploading(true);
     const waiting = files.filter(f => f.status === 'waiting');
     let ok = 0;
 
     for (const fileObj of waiting) {
-      setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'uploading', progress: 20 } : f));
+      setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'uploading', progress: 15 } : f));
       try {
-        const img = new Image();
-        img.src = fileObj.preview;
-        
-        const analysis = await new Promise((res, rej) => {
-          img.onload = async () => {
-            try {
-              // Normalize image dimensions to standard 224x224 execution arrays
-              const tensor = tf.tidy(() =>
-                tf.browser.fromPixels(img).resizeNearestNeighbor([224, 224]).toFloat().div(127.5).sub(1).expandDims()
-              );
+        // Wrap the file inside standard FormData to submit to your backend server
+        const formData = new FormData();
+        formData.append('file', fileObj.rawFile);
 
-              // Engine Prediction Core 1: Context Environment Location
-              const envPreds = await envModel.predict(tensor).data();
-              const envArray = Array.from(envPreds);
-              const maxEnvIdx = envArray.indexOf(Math.max(...envArray));
-              const detectedEnv = ENV_LABELS[maxEnvIdx];
-              
-              // Map out complete environment structural arrays sorted by highest confidence score
-              const envBreakdown = ENV_LABELS.map((label, idx) => ({
-                label,
-                confidence: Math.round(envArray[idx] * 100)
-              })).sort((a, b) => b.confidence - a.confidence);
+        setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, progress: 30 } : f));
 
-              setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, progress: 60 } : f));
-
-              // Engine Prediction Core 2: Population Multi-density Vectors
-              const peoplePreds = await peopleModel.predict(tensor).data();
-              const peopleArray = Array.from(peoplePreds);
-              const maxPeopleIdx = peopleArray.indexOf(Math.max(...peopleArray));
-              const detectedPeople = PEOPLE_LABELS[maxPeopleIdx];
-
-              // Map out population structural density values sorted by highest confidence score
-              const peopleBreakdown = PEOPLE_LABELS.map((label, idx) => ({
-                label,
-                confidence: Math.round(peopleArray[idx] * 100)
-              })).sort((a, b) => b.confidence - a.confidence);
-
-              tensor.dispose(); // Prevent client browser memory overhead
-              res({ detectedEnv, detectedPeople, envBreakdown, peopleBreakdown });
-            } catch (e) { rej(e); }
-          };
-          img.onerror = () => rej('Image loading failure');
+        // Point to your Next.js backend API instead of Hugging Face directly
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          body: formData,
         });
 
-        // ── STEP 3: DISPATCH VECTOR CLASSIFICATIONS TO REDUX CORE BACKEND ──
+        if (!response.ok) throw new Error('Proxy API returned an error status');
+        const { envData, peopleData } = await response.json();
+        
+        // Map Environment results
+        const envBreakdown = envData.map(item => ({
+          label: item.label,
+          confidence: Math.round(item.score * 100)
+        })).sort((a, b) => b.confidence - a.confidence);
+        const detectedEnv = envBreakdown[0]?.label || 'Indoor';
+
+        setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, progress: 70 } : f));
+
+        // Map Population results
+        const peopleBreakdown = peopleData.map(item => ({
+          label: item.label,
+          confidence: Math.round(item.score * 100)
+        })).sort((a, b) => b.confidence - a.confidence);
+        const detectedPeople = peopleBreakdown[0]?.label || 'Solo';
+
+        setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, progress: 85 } : f));
+
+        // Dispatch variables safely down to your database Redux reducer action
         await dispatch(uploadPhotoAction({ 
           file: fileObj.rawFile, 
-          category: analysis.detectedEnv,    
-          peopleTag: analysis.detectedPeople 
+          category: detectedEnv,    
+          peopleTag: detectedPeople 
         })).unwrap();
 
         setFiles(p => p.map(f => f.id === fileObj.id ? { 
           ...f, 
           status: 'done', 
           progress: 100, 
-          category: analysis.detectedEnv,
-          peopleTag: analysis.detectedPeople,
-          envBreakdown: analysis.envBreakdown,
-          peopleBreakdown: analysis.peopleBreakdown
+          category: detectedEnv,
+          peopleTag: detectedPeople,
+          envBreakdown,
+          peopleBreakdown
         } : f));
 
-        addToast(`${fileObj.name} routed to system database`, 'success');
+        addToast(`${fileObj.name} processed and saved successfully!`, 'success');
         ok++;
       } catch (err) {
-        console.error("Deep analysis tracking exception for file:", fileObj.name, err);
+        console.error("Local proxy pipeline error context:", fileObj.name, err);
         setFiles(p => p.map(f => f.id === fileObj.id ? { ...f, status: 'error' } : f));
-        addToast(`Deep analysis failed: ${fileObj.name}`, 'error');
+        addToast(`Analysis exception: ${fileObj.name}`, 'error');
       }
     }
     setUploading(false);
-    if (ok > 0) addToast(`${ok} files processed, verified, and safely recorded!`, 'success');
+    if (ok > 0) addToast(`${ok} files successfully recorded via Server Proxy Pipeline!`, 'success');
   };
 
   const hasDoneCategories = combineLabels.some(l => categoryCounts[l] > 0);
-
-  const aiStatusPill = (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 7,
-      padding: '5px 12px', borderRadius: 20,
-      background: modelLoading ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
-      border: `1px solid ${modelLoading ? 'rgba(245,158,11,0.3)' : 'rgba(16,185,129,0.3)'}`,
-      cursor: 'default',
-    }}>
-      <div style={{
-        width: 7, height: 7, borderRadius: '50%',
-        background: modelLoading ? '#f59e0b' : '#10b981',
-        animation: modelLoading ? 'pulse 1s infinite' : 'none',
-      }} />
-      <span style={{ fontSize: 11, fontWeight: 700, color: modelLoading ? '#f59e0b' : '#10b981', letterSpacing: '0.04em' }}>
-        {modelLoading ? 'SYNCING AI' : 'AI DUAL NETWORKS ONLINE'}
-      </span>
-    </div>
-  );
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(145deg,#040210 0%,#0b0820 40%,#0f0c1e 100%)', fontFamily: "'DM Sans',system-ui,sans-serif", color: '#e2e8f0' }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      {/* ── HEADER NAVIGATION TOP BAR ── */}
       <div style={{ background: 'rgba(4,2,16,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ padding: '16px 32px' }}>
-          <TopBar title="Upload Smart Photos" showStatus={false} searchPlaceholder="Search files…" rightExtra={aiStatusPill} />
+          <TopBar title="Upload Smart Photos" showStatus={false} searchPlaceholder="Search files…" />
         </div>
       </div>
 
-      {/* ── CORE LAYOUT FRAME ── */}
       <main style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
@@ -500,11 +446,10 @@ export default function UploadPage() {
             <h2 style={{ margin: 0, fontSize: 30, fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.03em' }}>Upload &amp; Extract</h2>
           </div>
           <p style={{ margin: 0, marginLeft: 16, fontSize: 14, color: '#475569' }}>
-            Drop files — our customized deep networks simultaneously resolve environment contexts &amp; population structures.
+            Drop files — processed directly via cloud inference on Hugging Face.
           </p>
         </div>
 
-        {/* Dynamic Tracking Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 32 }}>
           <StatCard icon={IcUpload} label="Ready"      value={readyCount}  accent="#6366f1" />
           <StatCard icon={IcCheck}  label="Completed"  value={doneCount}   accent="#10b981" />
@@ -513,7 +458,6 @@ export default function UploadPage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: hasDoneCategories ? '1fr 320px' : '1fr', gap: 24 }}>
-          {/* Main Drag-Drop Interaction Frame */}
           <div>
             <div
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -546,7 +490,6 @@ export default function UploadPage() {
               <p style={{ margin: '0 0 24px', fontSize: 13, color: '#334155' }}>JPEG, PNG, GIF, WebP · max 10 MB each</p>
             </div>
 
-            {/* Managed Active Queue Grid */}
             {files.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -580,17 +523,17 @@ export default function UploadPage() {
                       </button>
                     )}
 
-                    <button onClick={startUpload} disabled={!readyCount || uploading || !envModel || !peopleModel} style={{
+                    <button onClick={startUpload} disabled={!readyCount || uploading} style={{
                       display: 'flex', alignItems: 'center', gap: 7,
                       padding: '8px 18px', borderRadius: 10, border: 'none',
-                      background: readyCount && !uploading && envModel && peopleModel ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(255,255,255,0.06)',
-                      color: readyCount && !uploading && envModel && peopleModel ? '#fff' : '#334155',
+                      background: readyCount && !uploading ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(255,255,255,0.06)',
+                      color: readyCount && !uploading ? '#fff' : '#334155',
                       fontSize: 13, fontWeight: 700,
-                      cursor: readyCount && !uploading && envModel && peopleModel ? 'pointer' : 'not-allowed',
+                      cursor: readyCount && !uploading ? 'pointer' : 'not-allowed',
                       transition: 'all 0.2s',
-                      boxShadow: readyCount && !uploading && envModel && peopleModel ? '0 4px 14px rgba(99,102,241,0.35)' : 'none',
+                      boxShadow: readyCount && !uploading ? '0 4px 14px rgba(99,102,241,0.35)' : 'none',
                     }}>
-                      {uploading ? <><IcLoader size={14} /> Analyzing Structural Vectors…</> : <><IcZap size={14} /> {envModel && peopleModel ? `Upload ${readyCount}` : 'Mounting Tensors…'}</>}
+                      {uploading ? <><IcLoader size={14} /> Querying HF Cloud…</> : <><IcZap size={14} /> Classify and Upload {readyCount}</>}
                     </button>
                   </div>
                 </div>
@@ -646,7 +589,6 @@ export default function UploadPage() {
             )}
           </div>
 
-          {/* Right Container: Taxonomy Sidebar Summary */}
           {hasDoneCategories && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
