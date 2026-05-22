@@ -1,7 +1,22 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const BASE_URL = "https://smart-photo-backend-production.up.railway.app/api";
 
+// ─────────────────────────────────────────────
+// SAFE JSON PARSE (prevents crashes)
+// ─────────────────────────────────────────────
+const safeJSONParse = (value) => {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+// ─────────────────────────────────────────────
+// AUTH THUNKS
+// ─────────────────────────────────────────────
 
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
@@ -14,17 +29,13 @@ export const registerUser = createAsyncThunk(
       }
 
       const res = await axios.post(
-        "https://smart-photo-backend-production.up.railway.app/api/auth/register",
+        `${BASE_URL}/auth/register`,
         { name, email, password },
         {
           headers: { "Content-Type": "application/json" },
           timeout: 10000,
         }
       );
-
-      if (!res.data.success) {
-        throw new Error(res.data.message || "Registration failed");
-      }
 
       return {
         success: true,
@@ -51,7 +62,7 @@ export const loginUser = createAsyncThunk(
       }
 
       const res = await axios.post(
-        "https://smart-photo-backend-production.up.railway.app/api/auth/login",
+        `${BASE_URL}/auth/login`,
         { email, password },
         {
           headers: { "Content-Type": "application/json" },
@@ -59,10 +70,6 @@ export const loginUser = createAsyncThunk(
           timeout: 10000,
         }
       );
-
-      if (!res.data.success) {
-        throw new Error(res.data.message || "Login failed");
-      }
 
       return {
         success: true,
@@ -84,26 +91,17 @@ export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async ({ email }, { rejectWithValue }) => {
     try {
-
       const res = await axios.post(
-        "https://smart-photo-backend-production.up.railway.app/api/auth/forget-password",
+        `${BASE_URL}/auth/forget-password`,
         { email },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
       return res.data;
-
     } catch (error) {
-
       return rejectWithValue(
         error.response?.data?.message || "Failed to send OTP"
       );
-
     }
   }
 );
@@ -112,25 +110,17 @@ export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async ({ email, otp }, { rejectWithValue }) => {
     try {
-
       const res = await axios.post(
-        "https://smart-photo-backend-production.up.railway.app/api/auth/verify-otp",
+        `${BASE_URL}/auth/verify-otp`,
         { email, otp },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
       return res.data;
-
     } catch (error) {
-
       return rejectWithValue(
         error.response?.data?.message || "OTP verification failed"
       );
-
     }
   }
 );
@@ -139,54 +129,48 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ email, otp, password }, { rejectWithValue }) => {
     try {
-
       const res = await axios.post(
-        "https://smart-photo-backend-production.up.railway.app/api/auth/reset-password",
-        {
-          email,
-          otp,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        `${BASE_URL}/auth/reset-password`,
+        { email, otp, password },
+        { headers: { "Content-Type": "application/json" } }
       );
 
       return res.data;
-
     } catch (error) {
-
       return rejectWithValue(
         error.response?.data?.message || "Password reset failed"
       );
-
     }
   }
 );
 
 export const googleLoginUser = createAsyncThunk(
-    "auth/googleLoginUser",
-    async ({ token }, { rejectWithValue }) => {
-        try {
-            const res = await axios.post(
-                "https://smart-photo-backend-production.up.railway.app/api/auth/google",
-                { token },
-                { headers: { "Content-Type": "application/json" } }
-            );
-            return {
-                success: true,
-                message: res.data.message,
-                user: res.data.data,
-                token: res.data.token,
-            };
-        } catch (error) {
-            return rejectWithValue(error.response?.data?.message || "Google login failed");
-        }
+  "auth/googleLoginUser",
+  async ({ token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/auth/google`,
+        { token },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      return {
+        success: true,
+        message: res.data.message,
+        user: res.data.data || null,
+        token: res.data.token || null,
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Google login failed"
+      );
     }
+  }
 );
 
+// ─────────────────────────────────────────────
+// INITIAL STATE (FIXED SAFELY)
+// ─────────────────────────────────────────────
 
 const initialState = {
   loading: false,
@@ -200,17 +184,18 @@ const initialState = {
 
   user:
     typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("user"))
+      ? safeJSONParse(localStorage.getItem("user"))
       : null,
 
   token:
     typeof window !== "undefined"
       ? localStorage.getItem("token")
       : null,
-
 };
 
-
+// ─────────────────────────────────────────────
+// SLICE
+// ─────────────────────────────────────────────
 
 const authSlice = createSlice({
   name: "auth",
@@ -228,12 +213,10 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // ================= REGISTER =================
+      // REGISTER
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.registerSuccess = false;
-        state.message = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
@@ -243,111 +226,95 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.registerSuccess = false;
       })
 
-
-      // ================= LOGIN =================
+      // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.loginSuccess = false;
-        state.message = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.loginSuccess = true;
         state.message = action.payload.message;
 
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.user = action.payload.user || null;
+        state.token = action.payload.token || null;
 
-        // PERSIST LOGIN
         if (typeof window !== "undefined") {
-          localStorage.setItem("user", JSON.stringify(action.payload.user));
-          localStorage.setItem("token", action.payload.token);
+          localStorage.setItem("user", JSON.stringify(state.user));
+          localStorage.setItem("token", state.token);
         }
       })
-
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.loginSuccess = false;
       })
 
-      //  =================  FORGOT PASSWORD  ================= 
+      // FORGOT PASSWORD
       .addCase(forgotPassword.pending, (state) => {
-          state.loading = true;
-          state.error = null;
+        state.loading = true;
+        state.error = null;
       })
-
       .addCase(forgotPassword.fulfilled, (state) => {
-          state.loading = false;
-          state.forgotSuccess = true;
+        state.loading = false;
+        state.forgotSuccess = true;
       })
-
       .addCase(forgotPassword.rejected, (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
+        state.loading = false;
+        state.error = action.payload;
       })
 
-
-      //  =================  VERIFY OTP  ================= 
+      // VERIFY OTP
       .addCase(verifyOtp.pending, (state) => {
-          state.loading = true;
-          state.error = null;
+        state.loading = true;
+        state.error = null;
       })
-
       .addCase(verifyOtp.fulfilled, (state) => {
-          state.loading = false;
-          state.otpVerified = true;
+        state.loading = false;
+        state.otpVerified = true;
       })
-
       .addCase(verifyOtp.rejected, (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
+        state.loading = false;
+        state.error = action.payload;
       })
 
-
-      //  =================  RESET PASSWORD ================= 
+      // RESET PASSWORD
       .addCase(resetPassword.pending, (state) => {
-          state.loading = true;
-          state.error = null;
+        state.loading = true;
+        state.error = null;
       })
-
       .addCase(resetPassword.fulfilled, (state) => {
-          state.loading = false;
-          state.resetSuccess = true;
+        state.loading = false;
+        state.resetSuccess = true;
       })
-
       .addCase(resetPassword.rejected, (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
+        state.loading = false;
+        state.error = action.payload;
       })
 
-      //  ================= GOOGLE LOGIN ================= 
+      // GOOGLE LOGIN
       .addCase(googleLoginUser.pending, (state) => {
-          state.loading = true;
-          state.error = null;
+        state.loading = true;
+        state.error = null;
       })
-
       .addCase(googleLoginUser.fulfilled, (state, action) => {
-          state.loading = false;
-          state.loginSuccess = true;
-          state.message = action.payload.message;
-          state.user = action.payload.user;
-          state.token = action.payload.token;
+        state.loading = false;
+        state.loginSuccess = true;
+        state.message = action.payload.message;
 
-          if (typeof window !== "undefined") {
-              localStorage.setItem("user", JSON.stringify(action.payload.user));
-              localStorage.setItem("token", action.payload.token);
-          }
+        state.user = action.payload.user || null;
+        state.token = action.payload.token || null;
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(state.user));
+          localStorage.setItem("token", state.token);
+        }
       })
-
       .addCase(googleLoginUser.rejected, (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
-      })
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
