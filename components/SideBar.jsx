@@ -18,7 +18,6 @@ const menuItems = [
   { icon: Upload,          label: "Upload",       href: "/dashboard/upload" },
   { icon: Activity,        label: "Processing",   href: "/dashboard/processing" },
   { icon: Layers,          label: "Albums",       href: "/dashboard/albums" },
-  { icon: LayoutGrid,      label: "smart-Albums", href: "/dashboard/smart-Albums" },
   { icon: Trash2,          label: "Trash",        href: "/dashboard/trash" },
   { icon: Cpu,             label: "AI Models",    href: "/dashboard/models" },
   { icon: Settings,        label: "Settings",     href: "/dashboard/settings" },
