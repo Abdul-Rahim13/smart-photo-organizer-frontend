@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp, RotateCcw, X, Clock, Loader2
 } from 'lucide-react';
 
-import TopBar from '../../../components/TopBar';
+import TopBar, { addNotification } from '../../../components/TopBar';
 import { fetchAllPhotos } from '../../../src/redux/slices/photoSlice';
 
 // ─── MODEL DATA WITH REAL STATS ───────────────────────────────────────────────
@@ -136,7 +136,7 @@ function AccuracyBar({ value }) {
       <div className="flex items-center gap-2">
         <div className="flex-1 h-2 bg-gray-800/80 rounded-full overflow-hidden">
           <div
-            className="h-full rounded-full bg-linear-to-r from-emerald-500 to-green-400 transition-all duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400 transition-all duration-700"
             style={{ width: `${value}%` }}
           />
         </div>
@@ -351,6 +351,9 @@ export default function AIModelsPage() {
   const toggleModel = async (id) => {
     setTogglingModelId(id);
     
+    const model = models.find(m => m.id === id);
+    const wasActive = model?.active;
+    
     // Simulate model loading/unloading
     await new Promise(resolve => setTimeout(resolve, 800));
     
@@ -361,10 +364,17 @@ export default function AIModelsPage() {
         
         // Update stats for the model
         if (nowActive) {
-          // When activating, simulate processing some images
           const photoCount = photos?.length || 0;
           const processedCount = Math.floor(photoCount * (Math.random() * 0.3 + 0.5));
+          
+          // Add notification for model loaded
+          addNotification(
+            'Model Loaded',
+            `${m.name} has been loaded successfully and is now ready to process images.`,
+            'success'
+          );
           showToast(`${m.name} loaded successfully`, "success");
+          
           return { 
             ...m, 
             active: nowActive, 
@@ -372,6 +382,12 @@ export default function AIModelsPage() {
             memory: m.memory 
           };
         } else {
+          // Add notification for model unloaded
+          addNotification(
+            'Model Unloaded',
+            `${m.name} has been unloaded to free up memory.`,
+            'info'
+          );
           showToast(`${m.name} unloaded`, "error");
           return { ...m, active: nowActive, processed: 0, memory: 0 };
         }
@@ -395,8 +411,26 @@ export default function AIModelsPage() {
     setChecking(true);
     await new Promise(resolve => setTimeout(resolve, 2000));
     setChecking(false);
+    
+    addNotification(
+      'Models Up to Date',
+      'All AI models are currently up to date with the latest versions.',
+      'success'
+    );
     showToast("All models are up to date ✓", "success");
   };
+
+  // Add notification when memory usage is high
+  useEffect(() => {
+    if (stats.totalMemory > 500) {
+      addNotification(
+        'High Memory Usage',
+        `You have ${stats.activeCount} active models using ${stats.totalMemory} MB of memory. Consider unloading unused models.`,
+        'warning',
+        '/dashboard/ai-models'
+      );
+    }
+  }, [stats.totalMemory, stats.activeCount]);
 
   if (photosLoading && models.length === 0) {
     return (

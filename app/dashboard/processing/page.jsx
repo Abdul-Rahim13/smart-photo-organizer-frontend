@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, PlayCircle, PauseCircle, AlertTriangle, 
   Loader2, Trash2, Eye, Star
 } from 'lucide-react';
-import TopBar from '../../../components/TopBar';
+import TopBar, { addNotification } from '../../../components/TopBar';
 import { fetchAllPhotos, updatePhotoMetadata, toggleStarred } from '../../../src/redux/slices/photoSlice';
 
 // ─── STATUS CONFIGURATION ────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ const QueueCard = React.memo(({ item, onRetry, onView, onStar }) => {
 
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-xl overflow-hidden hover:border-indigo-500/30 transition-all duration-300 group">
-      <div className="h-36 relative overflow-hidden bg-linear-to-br from-purple-900/30 to-indigo-900/30">
+      <div className="h-36 relative overflow-hidden bg-gradient-to-br from-purple-900/30 to-indigo-900/30">
         {item.imageUrl && (
           <img 
             src={item.imageUrl} 
@@ -78,20 +78,17 @@ const QueueCard = React.memo(({ item, onRetry, onView, onStar }) => {
           />
         )}
         
-        {/* Progress Overlay */}
         {item.status !== 'complete' && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <CircularProgress percent={item.progress} status={item.status} />
           </div>
         )}
 
-        {/* Status Badge */}
         <div className={`absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${cfg.color} ${cfg.bg}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} ${item.status !== 'complete' ? 'animate-pulse' : ''}`} />
           {cfg.label}
         </div>
 
-        {/* Menu Button */}
         <div className="absolute bottom-2 right-2">
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
@@ -144,7 +141,7 @@ const QueueRow = React.memo(({ item, onRetry, onView, onStar }) => {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/40 hover:bg-white/5 transition group">
-      <div className="w-10 h-10 rounded-lg bg-linear-to-br from-purple-900/30 to-indigo-900/30 overflow-hidden shrink-0 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-900/30 to-indigo-900/30 overflow-hidden shrink-0 flex items-center justify-center">
         {item.imageUrl ? (
           <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
         ) : (
@@ -207,6 +204,7 @@ export default function ProcessingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [processingItems, setProcessingItems] = useState([]);
+  const [notifiedCompletion, setNotifiedCompletion] = useState(false);
   
   const progressIntervalRef = useRef(null);
   const filters = ['All', 'Queued', 'Analyzing', 'Processing', 'Complete', 'Starred'];
@@ -252,6 +250,11 @@ export default function ProcessingPage() {
     }
   }, [photos, processingItems.length]);
 
+  // Calculate overall progress
+  const overallProgress = processingItems.length > 0 
+    ? Math.round(processingItems.reduce((sum, i) => sum + i.progress, 0) / processingItems.length)
+    : 0;
+
   // Progress simulation - updates every 1.5 seconds
   useEffect(() => {
     if (isPaused || processingItems.length === 0) return;
@@ -271,6 +274,12 @@ export default function ProcessingPage() {
             newStatus = 'complete';
             newStage = 'Complete!';
             toast.success(`✨ ${item.title} processed!`);
+            addNotification(
+              'Photo Processing Complete',
+              `"${item.title}" has been successfully processed by AI.`,
+              'success',
+              '/dashboard/photos'
+            );
           } else if (newProgress > 80) {
             newStatus = 'processing';
             newStage = 'Finalizing...';
@@ -294,6 +303,24 @@ export default function ProcessingPage() {
     };
   }, [isPaused, processingItems.length]);
 
+  // Check for all complete and send notification
+  useEffect(() => {
+    if (processingItems.length > 0 && !notifiedCompletion) {
+      const allComplete = processingItems.every(item => item.status === 'complete' || item.progress === 100);
+      if (allComplete && overallProgress === 100) {
+        setNotifiedCompletion(true);
+        addNotification(
+          'AI Processing Complete',
+          `All ${processingItems.length} photos have been successfully processed by AI.`,
+          'success',
+          '/dashboard/photos'
+        );
+      } else if (!allComplete) {
+        setNotifiedCompletion(false);
+      }
+    }
+  }, [processingItems, overallProgress, notifiedCompletion]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -304,11 +331,15 @@ export default function ProcessingPage() {
   // Handle retry for failed/queued items
   const handleRetry = useCallback((item) => {
     toast.info(`🔄 Re-analyzing: ${item.title}`);
+    addNotification(
+      'Photo Re-analysis Started',
+      `"${item.title}" is being re-analyzed by AI.`,
+      'info'
+    );
     setProcessingItems(prev => prev.map(i => 
       i.id === item.id ? { ...i, progress: 5, status: 'analyzing', stage: 'Restarting...' } : i
     ));
     
-    // Update backend metadata
     setTimeout(() => {
       dispatch(updatePhotoMetadata({
         id: item.id,
@@ -323,6 +354,11 @@ export default function ProcessingPage() {
       i.id === item.id ? { ...i, isStarred: !i.isStarred } : i
     ));
     toast.success(item.isStarred ? 'Removed from starred' : '⭐ Added to favorites');
+    addNotification(
+      item.isStarred ? 'Removed from Favorites' : 'Added to Favorites',
+      `"${item.title}" has been ${item.isStarred ? 'removed from' : 'added to'} your favorites.`,
+      item.isStarred ? 'info' : 'success'
+    );
     try {
       await dispatch(toggleStarred(item.id)).unwrap();
     } catch (error) {
@@ -337,20 +373,38 @@ export default function ProcessingPage() {
 
   // Handle clear completed items
   const handleClearCompleted = useCallback(() => {
+    const completedCount = processingItems.filter(i => i.status === 'complete').length;
     setProcessingItems(prev => prev.filter(i => i.status !== 'complete'));
-    toast.success('Cleared completed items');
-  }, []);
+    toast.success(`Cleared ${completedCount} completed items`);
+    if (completedCount > 0) {
+      addNotification(
+        'Completed Items Cleared',
+        `${completedCount} processed photo(s) have been removed from the queue.`,
+        'info'
+      );
+    }
+  }, [processingItems]);
 
   // Handle resume all
   const handleResumeAll = useCallback(() => {
     setIsPaused(false);
     toast.success('▶️ Queue resumed');
+    addNotification(
+      'Queue Resumed',
+      'AI processing queue has been resumed.',
+      'success'
+    );
   }, []);
 
   // Handle pause queue
   const handlePauseQueue = useCallback(() => {
     setIsPaused(true);
     toast.warning('⏸️ Queue paused');
+    addNotification(
+      'Queue Paused',
+      'AI processing queue has been paused.',
+      'warning'
+    );
   }, []);
 
   // Memoized filtered items for performance
@@ -380,10 +434,6 @@ export default function ProcessingPage() {
     complete: processingItems.filter(i => i.status === 'complete').length,
     starred: processingItems.filter(i => i.isStarred).length,
   }), [processingItems]);
-
-  const overallProgress = processingItems.length > 0 
-    ? Math.round(processingItems.reduce((sum, i) => sum + i.progress, 0) / processingItems.length)
-    : 0;
 
   // Loading state
   if (reduxLoading && processingItems.length === 0) {
@@ -452,7 +502,7 @@ export default function ProcessingPage() {
             </div>
             <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-linear-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>

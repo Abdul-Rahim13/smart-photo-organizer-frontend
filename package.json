@@ -1,12 +1,13 @@
 {
-  "name": "my-app",
-  "version": "0.1.0",
+  "name": "smart-photo-frontend",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "netlify-build": "npm run build"
   },
   "dependencies": {
     "@huggingface/inference": "^2.6.4",

@@ -11,7 +11,7 @@ import {
   Image as ImageIcon, Layers, Palette, Scissors, RefreshCw,
   Droplet, Brush, Heart, Star, Cloud, Sunset, Search
 } from 'lucide-react';
-import TopBar from '../../../components/TopBar';
+import TopBar, { addNotification } from '../../../components/TopBar';
 
 // ─── CUSTOM ICON COMPONENTS (Defined FIRST before they are used) ─────────────
 const TreePineIcon = ({ size, className }) => (
@@ -198,6 +198,7 @@ export default function AIStudioPage() {
       setHistoryIndex(historyIndex - 1);
       setEditedImage(history[historyIndex - 1]);
       toast.info("Undo successful");
+      addNotification('Action Undone', 'Last edit has been undone.', 'info');
     } else {
       toast.error("Nothing to undo");
     }
@@ -209,6 +210,7 @@ export default function AIStudioPage() {
       setHistoryIndex(historyIndex + 1);
       setEditedImage(history[historyIndex + 1]);
       toast.info("Redo successful");
+      addNotification('Action Redone', 'Last edit has been reapplied.', 'info');
     } else {
       toast.error("Nothing to redo");
     }
@@ -270,10 +272,8 @@ export default function AIStudioPage() {
         canvas.width = subjectElement.width;
         canvas.height = subjectElement.height;
         
-        // Draw background
         if (bgData.type === 'transparent') {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          // Draw checkerboard for transparency preview
           const checkerSize = 20;
           for (let i = 0; i < canvas.width; i += checkerSize) {
             for (let j = 0; j < canvas.height; j += checkerSize) {
@@ -440,6 +440,7 @@ export default function AIStudioPage() {
       setEditedImage(photoDataUrl);
       stopCamera();
       toast.success("Photo captured successfully!");
+      addNotification('Photo Captured', 'Your photo has been captured successfully.', 'success');
     } else {
       toast.error("Camera not ready. Please wait.");
     }
@@ -455,6 +456,7 @@ export default function AIStudioPage() {
         setOriginalImage(imageDataUrl);
         setEditedImage(imageDataUrl);
         toast.success("Image uploaded successfully!");
+        addNotification('Image Uploaded', 'Your image has been uploaded successfully.', 'success');
       };
       reader.readAsDataURL(file);
     } else {
@@ -492,11 +494,13 @@ export default function AIStudioPage() {
         setOriginalImage(bgRemovedImage);
         setShowBgOptions(true);
         toast.success("Background removed successfully! Now choose a new background.", { id: 'bg-remove' });
+        addNotification('Background Removed', 'Background has been removed successfully. You can now choose a new background.', 'success');
       };
       reader.readAsDataURL(resultBlob);
     } catch (error) {
       console.error("Background removal error:", error);
       toast.error("Failed to remove background. Please try again.", { id: 'bg-remove' });
+      addNotification('Background Removal Failed', 'Failed to remove background. Please try again.', 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -513,9 +517,11 @@ export default function AIStudioPage() {
       const newImage = await applyBackground(subjectImage, preset);
       setEditedImage(newImage);
       toast.success("Background changed successfully!");
+      addNotification('Background Changed', `Background changed to "${preset.name || 'Custom'}" successfully.`, 'success');
     } catch (error) {
       console.error("Background change error:", error);
       toast.error("Failed to change background");
+      addNotification('Background Change Failed', 'Failed to change background. Please try again.', 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -552,6 +558,7 @@ export default function AIStudioPage() {
       
       if (data.success) {
         toast.success("Image saved to your gallery!", { id: 'save' });
+        addNotification('Image Saved', 'Your edited image has been saved to your gallery.', 'success', '/dashboard/photos');
         setTimeout(() => {
           handleReset();
         }, 2000);
@@ -561,6 +568,7 @@ export default function AIStudioPage() {
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Failed to save image. Please try again.", { id: 'save' });
+      addNotification('Save Failed', 'Failed to save image. Please try again.', 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -578,6 +586,7 @@ export default function AIStudioPage() {
     link.href = editedImage;
     link.click();
     toast.success("Download started!");
+    addNotification('Download Started', 'Your image download has started.', 'info');
   };
 
   // Reset all edits
@@ -599,6 +608,7 @@ export default function AIStudioPage() {
     setSelectedBgPreset(null);
     stopCamera();
     toast.info("Reset complete");
+    addNotification('Reset Complete', 'All edits have been reset.', 'info');
   };
 
   // Update adjustment value
@@ -624,6 +634,7 @@ export default function AIStudioPage() {
       const rotatedImage = canvas.toDataURL('image/jpeg', 0.9);
       setEditedImage(rotatedImage);
       toast.success("Image rotated");
+      addNotification('Image Rotated', 'Your image has been rotated 90 degrees.', 'info');
     };
   };
 
@@ -676,7 +687,6 @@ export default function AIStudioPage() {
                   )}
                 </div>
                 
-                {/* Camera Controls */}
                 <div className="flex justify-center gap-4 mt-4">
                   {cameraDevices.length > 1 && (
                     <button
@@ -728,7 +738,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={startCamera}
                   disabled={isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 hover:border-indigo-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 hover:border-indigo-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   <Camera size={24} className="text-indigo-400" />
                   <span className="text-xs font-medium">Take Photo</span>
@@ -737,7 +747,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 hover:border-cyan-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 hover:border-cyan-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   <Upload size={24} className="text-cyan-400" />
                   <span className="text-xs font-medium">Upload</span>
@@ -746,7 +756,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={removeBackground}
                   disabled={!editedImage || isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 hover:border-emerald-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 hover:border-emerald-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   {isProcessing ? <Loader2 size={24} className="animate-spin text-emerald-400" /> : <Scissors size={24} className="text-emerald-400" />}
                   <span className="text-xs font-medium">Remove BG</span>
@@ -755,7 +765,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={applyRotate}
                   disabled={!editedImage || isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-rose-600/20 to-pink-600/20 border border-rose-500/30 hover:border-rose-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-rose-600/20 to-pink-600/20 border border-rose-500/30 hover:border-rose-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   <RotateCw size={24} className="text-rose-400" />
                   <span className="text-xs font-medium">Rotate</span>

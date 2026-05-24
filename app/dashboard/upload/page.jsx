@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addPhotoToStore } from '../../../src/redux/slices/photoSlice';
-import TopBar from '../../../components/TopBar';
+import TopBar, { addNotification } from '../../../components/TopBar';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -53,26 +53,19 @@ const optimizeCloudinaryUrl = (url, options = { width: 400, height: 400, quality
   return url;
 };
 
-// ── FILENAME-BASED DETECTION (RELIABLE) ──────────────────────────────────
+// ─── FILENAME-BASED DETECTION (RELIABLE) ──────────────────────────────────
 function analyzeFilename(filename) {
-  // Start with original filename for logging
   let originalName = filename;
   let name = filename.toLowerCase();
   
-  // Remove file extension
   name = name.replace(/\.(jpg|jpeg|png|webp|gif|bmp)$/i, '');
-  
-  // Remove trailing numbers and underscores (e.g., "_1", "_2", "_3", "-1", "-2", " 1", " 2")
   name = name.replace(/[-_\s]?\d+$/, '');
-  name = name.replace(/[-_]?\d+[-_]/, '_'); // Remove numbers in middle like "beach_1_couple"
-  
-  // Clean up multiple underscores
+  name = name.replace(/[-_]?\d+[-_]/, '_');
   name = name.replace(/_+/g, '_');
   name = name.replace(/^_|_$/g, '');
   
   console.log(`📊 Analyzing: ${originalName} → Clean name: ${name || 'empty'}`);
   
-  // Environment detection
   let environment = 'Indoor';
   const outdoorKeywords = [
     'outdoor', 'outside', 'beach', 'mountain', 'park', 'garden', 'nature', 
@@ -86,11 +79,9 @@ function analyzeFilename(filename) {
     environment = 'Outdoor';
   }
   
-  // Social group detection
   let socialGroup = 'Solo';
   let faceCount = 1;
   
-  // Keywords that indicate presence of people
   const peopleKeywords = [
     'group', 'gp', 'team', 'crowd', 'people', 'friends', 'family', 'audience',
     'couple', 'cp', 'two', 'pair', 'together', 'both', 'duo',
@@ -100,7 +91,6 @@ function analyzeFilename(filename) {
   
   const hasPeopleIndicator = peopleKeywords.some(keyword => name.includes(keyword));
   
-  // Check for EMPTY first (no people indicators AND has nature/landscape keywords)
   const emptyKeywords = ['empty', 'no people', 'nopeople', 'landscape', 'scenery', 'view', 'nature'];
   const isLandscapeKeywords = ['beach', 'mountain', 'sky', 'sunset', 'ocean', 'forest', 'lake', 'river', 'field', 'hill'];
   
@@ -109,28 +99,24 @@ function analyzeFilename(filename) {
     socialGroup = 'Empty';
     faceCount = 0;
   }
-  // Check for Group
   else if (name.includes('group') || name.includes('gp') || name.includes('team') || 
            name.includes('crowd') || name.includes('people') || name.includes('friends') || 
            name.includes('family') || name.includes('audience')) {
     socialGroup = 'Group';
     faceCount = 5;
   }
-  // Check for Couple
   else if (name.includes('couple') || name.includes('cp') || name.includes('two') || 
            name.includes('pair') || name.includes('together') || name.includes('both') || 
            name.includes('duo')) {
     socialGroup = 'Couple';
     faceCount = 2;
   }
-  // Check for Solo
   else if (name.includes('solo') || name.includes('single') || name.includes('alone') || 
            name.includes('portrait') || name.includes('selfie') || name.includes('person')) {
     socialGroup = 'Solo';
     faceCount = 1;
   }
   
-  // Scene detection (for display - optional)
   let sceneCategory = 'General';
   if (name.includes('beach') || name.includes('ocean') || name.includes('sea')) {
     sceneCategory = 'Beach';
@@ -184,7 +170,6 @@ export default function RebuiltUploadDashboard() {
     if (!selected) return;
 
     const formatted = Array.from(selected).map(file => {
-      // Analyze filename immediately
       const analysis = analyzeFilename(file.name);
       
       return {
@@ -203,9 +188,13 @@ export default function RebuiltUploadDashboard() {
 
     setStagingQueue(prev => [...prev, ...formatted]);
     toast.success(`${formatted.length} file(s) added to queue`);
+    addNotification(
+      'Files Added',
+      `${formatted.length} file(s) have been added to the upload queue.`,
+      'info'
+    );
   };
 
-  // ── CORE UPLOAD FUNCTION WITH FILENAME ANALYSIS ──
   const dispatchBatchAnalysis = async () => {
     if (isProcessing || !stagingQueue.some(item => item.processingStatus === 'waiting')) {
       toast.info('No pending files to upload');
@@ -214,6 +203,8 @@ export default function RebuiltUploadDashboard() {
     setIsProcessing(true);
 
     const activeWorkingQueue = [...stagingQueue];
+    let uploadedCount = 0;
+    let failedCount = 0;
 
     for (let currentItem of activeWorkingQueue) {
       if (currentItem.processingStatus !== 'waiting') continue;
@@ -225,8 +216,6 @@ export default function RebuiltUploadDashboard() {
       try {
         const payloadForm = new FormData();
         payloadForm.append('photos', currentItem.binaryPointer);
-        
-        // Add the detected values from filename analysis
         payloadForm.append('environment', currentItem.detectedEnv);
         payloadForm.append('socialGroup', currentItem.detectedSocial);
         payloadForm.append('faceCount', currentItem.detectedFaceCount.toString());
@@ -283,6 +272,14 @@ export default function RebuiltUploadDashboard() {
 
             dispatch(addPhotoToStore(displayAsset));
             toast.success(`✓ ${currentItem.name} → ${currentItem.detectedEnv} | ${currentItem.detectedSocial}`);
+            uploadedCount++;
+            
+            addNotification(
+              'Upload Successful',
+              `${currentItem.name} has been uploaded and classified as ${currentItem.detectedEnv} / ${currentItem.detectedSocial}.`,
+              'success',
+              '/dashboard/photos'
+            );
           } else {
             throw new Error('No photo data in response');
           }
@@ -305,6 +302,13 @@ export default function RebuiltUploadDashboard() {
         }
         
         toast.error(`${currentItem.name}: ${errorMessage}`);
+        failedCount++;
+        
+        addNotification(
+          'Upload Failed',
+          `${currentItem.name}: ${errorMessage}`,
+          'error'
+        );
         
         setStagingQueue(prev => prev.map(el => 
           el.uniqueId === currentItem.uniqueId ? { ...el, processingStatus: 'error', errorMessage: errorMessage } : el
@@ -313,6 +317,14 @@ export default function RebuiltUploadDashboard() {
     }
     setIsProcessing(false);
     toast.success('Upload batch completed!');
+    
+    if (uploadedCount > 0) {
+      addNotification(
+        'Batch Upload Complete',
+        `${uploadedCount} file(s) uploaded successfully. ${failedCount} failed.`,
+        uploadedCount > 0 ? 'success' : 'warning'
+      );
+    }
   };
 
   const removeFromQueue = (uniqueId) => {
@@ -325,6 +337,7 @@ export default function RebuiltUploadDashboard() {
   };
 
   const clearProcessed = () => {
+    const processedCount = stagingQueue.filter(i => i.processingStatus === 'success' || i.processingStatus === 'error').length;
     stagingQueue.forEach(item => {
       if (item.blobUrl && (item.processingStatus === 'success' || item.processingStatus === 'error')) {
         URL.revokeObjectURL(item.blobUrl);
@@ -332,6 +345,14 @@ export default function RebuiltUploadDashboard() {
     });
     setStagingQueue(prev => prev.filter(i => i.processingStatus === 'waiting'));
     toast.success('Cleared processed files');
+    
+    if (processedCount > 0) {
+      addNotification(
+        'Queue Cleaned',
+        `${processedCount} processed file(s) have been removed from queue.`,
+        'info'
+      );
+    }
   };
 
   const retryFailed = () => {
@@ -340,6 +361,14 @@ export default function RebuiltUploadDashboard() {
       item.processingStatus === 'error' ? { ...item, processingStatus: 'waiting', errorMessage: null } : item
     ));
     toast.info(`Retrying ${failedCount} failed file(s)`);
+    
+    if (failedCount > 0) {
+      addNotification(
+        'Retrying Failed Uploads',
+        `${failedCount} failed file(s) are being retried.`,
+        'info'
+      );
+    }
   };
 
   const resetNavigation = () => {

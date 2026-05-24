@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from 'next/link';
-import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
+import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../../../components/icons/LoginIcons";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";

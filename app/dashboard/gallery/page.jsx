@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +12,7 @@ import {
   Maximize2, Calendar
 } from 'lucide-react';
 
-import TopBar from '../../../components/TopBar';
+import TopBar, { addNotification } from '../../../components/TopBar';
 import {
   fetchAllPhotos,
   searchPhotos,
@@ -194,6 +194,7 @@ function ActionMenu({ photo, onClose, onDelete, onToggleStar, isTogglingStar }) 
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
           toast.success('Download started!', { id: 'download' });
+          addNotification('Download Started', `"${photo.title}" is being downloaded`, 'success');
         } catch (err) {
           toast.error('Download failed', { id: 'download' });
         }
@@ -204,6 +205,7 @@ function ActionMenu({ photo, onClose, onDelete, onToggleStar, isTogglingStar }) 
         if (photo.url) {
           navigator.clipboard.writeText(photo.url);
           toast.success('Link copied!');
+          addNotification('Link Copied', `Link for "${photo.title}" copied to clipboard`, 'info');
         }
         onClose();
       } },
@@ -353,7 +355,7 @@ function GridCard({ photo, selected, onSelect, onDelete, onToggleStar, onBreadcr
           </div>
         )}
 
-        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
       </div>
 
       <div className="p-3">
@@ -533,7 +535,13 @@ export default function GalleryPage() {
     setTogglingStarId(id);
     try {
       await dispatch(toggleStarred(id)).unwrap();
-      toast.success('Star updated');
+      const photo = photos.find(p => p.id === id);
+      toast.success(photo?.starred ? '⭐ Added to favorites' : 'Removed from favorites');
+      addNotification(
+        photo?.starred ? 'Photo Starred' : 'Photo Unstarred',
+        `"${photo?.title || 'Photo'}" has been ${photo?.starred ? 'added to' : 'removed from'} favorites`,
+        photo?.starred ? 'success' : 'info'
+      );
     } catch (err) {
       toast.error('Failed to update star');
     } finally {
@@ -552,6 +560,12 @@ export default function GalleryPage() {
       // Add to trash storage
       addToTrash(photoToDelete, 'photo');
       toast.info(`📷 "${photoToDelete.title}" moved to trash`);
+      addNotification(
+        'Photo Moved to Trash',
+        `"${photoToDelete.title}" has been moved to trash. You can restore it within 30 days.`,
+        'warning',
+        '/dashboard/trash'
+      );
     }
     
     try {
@@ -575,6 +589,12 @@ export default function GalleryPage() {
       addToTrash(photo, 'photo');
     });
     toast.info(`📷 ${selectedIds.length} photo(s) moved to trash`);
+    addNotification(
+      'Photos Moved to Trash',
+      `${selectedIds.length} photo(s) have been moved to trash. You can restore them within 30 days.`,
+      'warning',
+      '/dashboard/trash'
+    );
     
     try {
       await Promise.all(selectedIds.map(id => dispatch(deletePhotoAction(id)).unwrap()));
@@ -744,7 +764,7 @@ export default function GalleryPage() {
         {/* List View */}
         {!isGlobalLoading && viewMode === 'list' && photos.length > 0 && (
           <div className="bg-[#1a1430] border border-slate-800/80 rounded-xl overflow-x-auto">
-            <div className="min-w-200">
+            <div className="min-w-[800px]">
               <div className="grid grid-cols-[2rem_3rem_1fr_100px_70px_90px_2.5rem] gap-3 px-4 py-3 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-800/80 bg-slate-900/30">
                 <button onClick={toggleAll} className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${selectedIds.length === photos.length ? 'bg-indigo-600 border-indigo-500' : 'border-slate-600 hover:border-slate-400'}`}>
                   {selectedIds.length === photos.length && <Check size={10} className="text-white" />}

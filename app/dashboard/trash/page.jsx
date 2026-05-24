@@ -30,7 +30,7 @@ import {
   FolderOpen
 } from "lucide-react";
 import { toast } from "sonner";
-import TopBar from "../../../components/TopBar";
+import TopBar, { addNotification } from "../../../components/TopBar";
 
 // ─── TYPE CONFIGURATION ──────────────────────────────────────────────────────
 const typeConfig = {
@@ -125,7 +125,7 @@ function TrashCard({ item, selected, onSelect, onRestore, onDelete, onPermanentD
         ${selected ? 'border-red-500/50 shadow-lg shadow-red-500/10' : 'border-gray-800/70 hover:border-red-500/30'}`}
       onClick={() => onSelect(item.id)}
     >
-      <div className="h-40 bg-linear-to-br from-purple-900/30 to-indigo-900/30 relative flex items-center justify-center overflow-hidden">
+      <div className="h-40 bg-gradient-to-br from-purple-900/30 to-indigo-900/30 relative flex items-center justify-center overflow-hidden">
         {item.imageUrl ? (
           <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover opacity-70" />
         ) : item.type === 'album' ? (
@@ -241,6 +241,11 @@ export default function TrashPage() {
     const { deleted, remaining } = autoDeleteExpiredItems(stored);
     if (deleted > 0) {
       toast.warning(`🗑️ Auto-deleted ${deleted} expired item${deleted !== 1 ? 's' : ''} (30+ days in trash)`);
+      addNotification(
+        'Auto-Delete',
+        `${deleted} expired item${deleted !== 1 ? 's' : ''} have been automatically removed from trash.`,
+        'warning'
+      );
     }
     setTrashItems(remaining);
     
@@ -319,6 +324,12 @@ export default function TrashPage() {
     setTrashItems(updated);
     saveTrashToStorage(updated);
     showToast(`"${newTrashItem.name}" moved to trash`);
+    addNotification(
+      'Item Moved to Trash',
+      `"${newTrashItem.name}" has been moved to trash. You can restore it within 30 days.`,
+      'warning',
+      '/dashboard/trash'
+    );
   }, [trashItems]);
 
   // Restore item from trash
@@ -330,14 +341,18 @@ export default function TrashPage() {
     setSelected(prev => prev.filter(x => x !== item.id));
     
     showToast(`"${item.name}" restored`);
-    
-    // Note: The item is not automatically restored to backend
-    // User would need to re-upload or recreate
+    addNotification(
+      'Item Restored',
+      `"${item.name}" has been restored from trash.`,
+      'success',
+      '/dashboard/photos'
+    );
   }, [trashItems]);
 
   // Permanently delete items
   const permanentlyDelete = useCallback(async (ids) => {
     const itemsToDelete = trashItems.filter(item => ids.includes(item.id));
+    const itemNames = itemsToDelete.map(i => i.name).join(', ');
     
     // Remove from trash storage
     const updated = trashItems.filter(item => !ids.includes(item.id));
@@ -346,6 +361,11 @@ export default function TrashPage() {
     setSelected([]);
     
     showToast(`${ids.length} item${ids.length !== 1 ? 's' : ''} permanently deleted`, "error");
+    addNotification(
+      'Items Permanently Deleted',
+      `${ids.length} item${ids.length !== 1 ? 's' : ''} have been permanently deleted.`,
+      'error'
+    );
     setModal(null);
   }, [trashItems]);
 
@@ -375,6 +395,11 @@ export default function TrashPage() {
     saveTrashToStorage([]);
     setSelected([]);
     showToast("Trash emptied", "error");
+    addNotification(
+      'Trash Emptied',
+      'All items have been permanently removed from trash.',
+      'error'
+    );
     setModal(null);
   };
 
@@ -382,6 +407,11 @@ export default function TrashPage() {
     const expiringIds = processedItems.filter(i => i.daysInTrash >= 25).map(i => i.id);
     if (expiringIds.length > 0) {
       permanentlyDelete(expiringIds);
+      addNotification(
+        'Expiring Items Deleted',
+        `${expiringIds.length} expiring item${expiringIds.length !== 1 ? 's' : ''} have been permanently deleted.`,
+        'warning'
+      );
     }
     setModal(null);
   };
@@ -575,7 +605,7 @@ export default function TrashPage() {
                   <div className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer ${selected.includes(item.id) ? 'bg-red-500 border-red-400' : 'border-gray-600'}`} onClick={() => toggleSelect(item.id)}>
                     {selected.includes(item.id) && <X size={10} className="text-white" />}
                   </div>
-                  <div className="w-9 h-9 rounded-xl bg-linear-to-br from-purple-900/30 to-indigo-900/30 flex items-center justify-center overflow-hidden">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-900/30 to-indigo-900/30 flex items-center justify-center overflow-hidden">
                     {item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-cover" /> : item.type === 'album' ? <FolderOpen size={18} className="text-gray-500" /> : "📷"}
                   </div>
                   <p className="text-sm font-semibold text-gray-100 truncate">{item.name}</p>

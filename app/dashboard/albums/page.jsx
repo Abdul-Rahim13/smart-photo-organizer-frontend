@@ -13,7 +13,7 @@ import {
   updateAlbum,
 } from "../../../src/redux/slices/albumSlice";
 import { fetchAllPhotos } from "../../../src/redux/slices/photoSlice";
-import TopBar from "../../../components/TopBar";
+import TopBar, { addNotification } from "../../../components/TopBar";
 import {
   FolderOpen, Plus, Search, Image as ImageIcon, Filter, Lock, Globe,
   MoreVertical, Trash2, Edit2, Share2, Grid3X3, X, Loader2,
@@ -38,6 +38,14 @@ const addToTrash = (item, type = 'album') => {
   
   const existingTrash = JSON.parse(localStorage.getItem('trash_items') || '[]');
   localStorage.setItem('trash_items', JSON.stringify([trashItem, ...existingTrash]));
+  
+  // Add notification
+  addNotification(
+    'Album Moved to Trash',
+    `"${item.name}" has been moved to trash. You can restore it within 30 days.`,
+    'warning',
+    '/dashboard/trash'
+  );
 };
 
 // ─── CONFIRM MODAL ──────────────────────────────────────────────────────────────
@@ -168,9 +176,9 @@ function AlbumCard({ album, onFavorite, onDelete, onEdit, onClick, onDownload, o
 
   return (
     <div className="bg-[#1a1430] rounded-2xl border border-slate-800/60 hover:border-slate-700 transition-all duration-300 flex flex-col cursor-pointer" onClick={onClick}>
-      <div className="h-40 relative bg-linear-to-br from-purple-900/30 to-indigo-900/30 flex items-center justify-center overflow-hidden rounded-t-2xl">
+      <div className="h-40 relative bg-gradient-to-br from-purple-900/30 to-indigo-900/30 flex items-center justify-center overflow-hidden rounded-t-2xl">
         {coverPhoto?.imageUrl ? <img src={coverPhoto.imageUrl} alt={album.name} className="w-full h-full object-cover" /> : <FolderOpen size={48} className="text-gray-600" />}
-        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-2 right-2 z-10 flex gap-2">
           <button onClick={(e) => { e.stopPropagation(); onFavorite(album.id); }} disabled={isTogglingFavorite}
             title={album.isFavorite ? "Remove Star" : "Add Star"}
@@ -328,7 +336,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           <button onClick={() => toggleSection('environment')}
-            className="w-full flex items-center justify-between p-3 bg-linear-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
+            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
             <div className="flex items-center gap-2">
               {expandedSections.environment ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <Sun size={16} className="text-yellow-400" />
@@ -337,7 +345,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
             </div>
           </button>
           {expandedSections.environment && (
-            <div className="space-y-4 max-h-125 overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Indoor), "Indoor")}
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Outdoor), "Outdoor")}
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Unknown), "Unknown")}
@@ -347,7 +355,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
 
         <div className="flex-1">
           <button onClick={() => toggleSection('socialGroup')}
-            className="w-full flex items-center justify-between p-3 bg-linear-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
+            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
             <div className="flex items-center gap-2">
               {expandedSections.socialGroup ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <Users size={16} className="text-pink-400" />
@@ -356,7 +364,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
             </div>
           </button>
           {expandedSections.socialGroup && (
-            <div className="space-y-4 max-h-125 overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Solo), "Solo")}
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Couple), "Couple")}
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Group), "Group")}
@@ -485,7 +493,6 @@ export default function AlbumsPage() {
   const [togglingFavoriteId, setTogglingFavoriteId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   
-  // Modal states
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, albumId: null, albumName: "" });
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState({ isOpen: false, count: 0 });
 
@@ -517,14 +524,19 @@ export default function AlbumsPage() {
     setTogglingFavoriteId(id);
     try {
       const result = await dispatch(toggleFavoriteAlbum(id)).unwrap();
-      toast.success(result?.isFavorite ? "⭐ Added to favorites" : "Removed from favorites");
+      const message = result?.isFavorite ? "⭐ Added to favorites" : "Removed from favorites";
+      toast.success(message);
+      addNotification(
+        result?.isFavorite ? "Album Starred" : "Album Unstarred",
+        `"${albums.find(a => a.id === id)?.name || 'Album'}" ${result?.isFavorite ? 'has been added to favorites' : 'has been removed from favorites'}`,
+        result?.isFavorite ? 'success' : 'info'
+      );
       await dispatch(fetchAlbums());
     } catch (err) {
       toast.error(err || "Failed to update favorite — please try again.");
     } finally { setTogglingFavoriteId(null); }
-  }, [dispatch, togglingFavoriteId]);
+  }, [dispatch, togglingFavoriteId, albums]);
 
-  // Single delete with modal
   const handleDeleteClick = (id, name) => {
     setDeleteConfirm({ isOpen: true, albumId: id, albumName: name });
   };
@@ -536,19 +548,24 @@ export default function AlbumsPage() {
     const albumToDelete = albums.find(album => album.id === albumId);
     if (albumToDelete) {
       addToTrash(albumToDelete, 'album');
-      toast.info(`📁 "${albumName}" moved to trash`);
     }
     
     try {
       await dispatch(deleteAlbum(albumId)).unwrap();
       if (selectedAlbum?.id === albumId) setSelectedAlbum(null);
       dispatch(fetchAlbums());
+      
+      addNotification(
+        'Album Deleted',
+        `"${albumName}" has been moved to trash. You can restore it within 30 days.`,
+        'warning',
+        '/dashboard/trash'
+      );
     } catch {
       toast.error("Failed to delete album");
     }
   };
 
-  // Bulk delete with modal
   const handleBulkDeleteClick = () => {
     setBulkDeleteConfirm({ isOpen: true, count: selectedIds.length });
   };
@@ -559,7 +576,6 @@ export default function AlbumsPage() {
     
     const albumsToDelete = albums.filter(album => selectedIds.includes(album.id));
     albumsToDelete.forEach(album => addToTrash(album, 'album'));
-    toast.info(`📁 ${count} album(s) moved to trash`);
     
     for (const id of selectedIds) {
       await dispatch(deleteAlbum(id)).unwrap();
@@ -567,16 +583,44 @@ export default function AlbumsPage() {
     if (selectedAlbum && selectedIds.includes(selectedAlbum.id)) setSelectedAlbum(null);
     dispatch(fetchAlbums());
     setSelectedIds([]);
+    
+    addNotification(
+      'Albums Deleted',
+      `${count} album(s) have been moved to trash. You can restore them within 30 days.`,
+      'warning',
+      '/dashboard/trash'
+    );
   };
 
   const handleCreate = async (payload) => {
-    try { await dispatch(createAlbum(payload)).unwrap(); toast.success(`✨ Album "${payload.title}" created`); dispatch(fetchAlbums()); }
-    catch (err) { toast.error(err.message || "Failed to create album"); }
+    try { 
+      await dispatch(createAlbum(payload)).unwrap(); 
+      toast.success(`✨ Album "${payload.title}" created`);
+      addNotification(
+        'Album Created',
+        `"${payload.title}" has been successfully created.`,
+        'success',
+        '/dashboard/albums'
+      );
+      dispatch(fetchAlbums()); 
+    } catch (err) { 
+      toast.error(err.message || "Failed to create album"); 
+    }
   };
 
   const handleUpdate = async (payload) => {
-    try { await dispatch(updateAlbum(payload)).unwrap(); toast.success(`📁 Album "${payload.title}" updated`); dispatch(fetchAlbums()); }
-    catch { toast.error("Failed to update album"); }
+    try { 
+      await dispatch(updateAlbum(payload)).unwrap(); 
+      toast.success(`📁 Album "${payload.title}" updated`);
+      addNotification(
+        'Album Updated',
+        `"${payload.title}" has been updated successfully.`,
+        'info'
+      );
+      dispatch(fetchAlbums()); 
+    } catch { 
+      toast.error("Failed to update album"); 
+    }
   };
 
   const stats = { total: albums.length, photos: albums.reduce((s, a) => s + a.photosCount, 0), starred: albums.filter((a) => a.isFavorite).length };
@@ -643,7 +687,7 @@ export default function AlbumsPage() {
         </div>
 
         {selectedAlbum && (
-          <div className="mb-6 bg-linear-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4">
+          <div className="mb-6 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <button onClick={() => setSelectedAlbum(null)} className="text-gray-400 hover:text-white transition cursor-pointer"><ArrowLeft size={18} /></button>
@@ -677,7 +721,7 @@ export default function AlbumsPage() {
           </div>
         ) : (
           <div className="bg-[#1a1430] border border-slate-800/80 rounded-xl overflow-x-auto">
-            <div className="min-w-200">
+            <div className="min-w-[800px]">
               <div className="grid grid-cols-[2rem_3rem_1fr_100px_100px_2.5rem] gap-3 px-4 py-3 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-800/80 bg-slate-900/30">
                 <button onClick={toggleAll} className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${selectedIds.length === filteredAlbums.length ? "bg-indigo-600 border-indigo-500" : "border-slate-600 hover:border-slate-400"}`}>{selectedIds.length === filteredAlbums.length && <Check size={10} className="text-white" />}</button>
                 <span>Preview</span><span>Name</span><span>Photos</span><span>Modified</span><span>Actions</span>

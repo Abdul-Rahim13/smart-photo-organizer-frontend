@@ -11,7 +11,7 @@ import {
 
 import { toast } from "sonner";
 
-import { CameraIcon, MailIcon, LockIcon } from "../login/icon";
+import { CameraIcon, MailIcon, LockIcon } from "../../../components/icons/LoginIcons";
 
 import {
   HiOutlineEye,
