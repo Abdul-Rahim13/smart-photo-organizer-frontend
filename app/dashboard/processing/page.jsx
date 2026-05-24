@@ -67,7 +67,7 @@ const QueueCard = React.memo(({ item, onRetry, onView, onStar }) => {
 
   return (
     <div className="bg-[#161026] border border-gray-800/70 rounded-xl overflow-hidden hover:border-indigo-500/30 transition-all duration-300 group">
-      <div className="h-36 relative overflow-hidden bg-gradient-to-br from-purple-900/30 to-indigo-900/30">
+      <div className="h-36 relative overflow-hidden bg-linear-to-br from-purple-900/30 to-indigo-900/30">
         {item.imageUrl && (
           <img 
             src={item.imageUrl} 
@@ -141,7 +141,7 @@ const QueueRow = React.memo(({ item, onRetry, onView, onStar }) => {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/40 hover:bg-white/5 transition group">
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-900/30 to-indigo-900/30 overflow-hidden shrink-0 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-linear-to-br from-purple-900/30 to-indigo-900/30 overflow-hidden shrink-0 flex items-center justify-center">
         {item.imageUrl ? (
           <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
         ) : (
@@ -502,7 +502,7 @@ export default function ProcessingPage() {
             </div>
             <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
+                className="h-full bg-linear-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>

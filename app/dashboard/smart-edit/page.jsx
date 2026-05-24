@@ -738,7 +738,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={startCamera}
                   disabled={isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 hover:border-indigo-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 hover:border-indigo-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   <Camera size={24} className="text-indigo-400" />
                   <span className="text-xs font-medium">Take Photo</span>
@@ -747,7 +747,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 hover:border-cyan-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 hover:border-cyan-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   <Upload size={24} className="text-cyan-400" />
                   <span className="text-xs font-medium">Upload</span>
@@ -756,7 +756,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={removeBackground}
                   disabled={!editedImage || isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 hover:border-emerald-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 hover:border-emerald-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   {isProcessing ? <Loader2 size={24} className="animate-spin text-emerald-400" /> : <Scissors size={24} className="text-emerald-400" />}
                   <span className="text-xs font-medium">Remove BG</span>
@@ -765,7 +765,7 @@ export default function AIStudioPage() {
                 <button
                   onClick={applyRotate}
                   disabled={!editedImage || isProcessing}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br from-rose-600/20 to-pink-600/20 border border-rose-500/30 hover:border-rose-500/60 transition cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-linear-to-br from-rose-600/20 to-pink-600/20 border border-rose-500/30 hover:border-rose-500/60 transition cursor-pointer disabled:opacity-50"
                 >
                   <RotateCw size={24} className="text-rose-400" />
                   <span className="text-xs font-medium">Rotate</span>
