@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../login/icon";
+import { CameraIcon, MailIcon, LockIcon, GoogleIcon } from "../../../components/icons/LoginIcons";
 import { HiOutlineEye, HiOutlineEyeOff, HiOutlineUser } from "react-icons/hi";
 
 const ClientAnimation = dynamic(
