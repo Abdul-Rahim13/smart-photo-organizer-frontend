@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { 
   LayoutDashboard, Image as ImageIcon, Upload, Activity, 
   Layers, LayoutGrid, Trash2, Cpu, Settings,
-  ChevronLeft, ChevronRight, LogOut
+  ChevronLeft, ChevronRight, LogOut, Wand2
 } from 'lucide-react';
 
 const menuItems = [
@@ -20,6 +20,7 @@ const menuItems = [
   { icon: Layers,          label: "Albums",       href: "/dashboard/albums" },
   { icon: Trash2,          label: "Trash",        href: "/dashboard/trash" },
   { icon: Cpu,             label: "AI Models",    href: "/dashboard/models" },
+  { icon: Wand2,             label: "Smart Edit",    href: "/dashboard/smart-edit" },
   { icon: Settings,        label: "Settings",     href: "/dashboard/settings" },
 ];
 
