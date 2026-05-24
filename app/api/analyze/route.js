@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://smart-photo-backend-production.up.railway.app/api';
-const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+const API_KEY = process.env.API_KEY;
 
 async function analyzeImage(imageBuffer) {
   try {
@@ -10,7 +10,7 @@ async function analyzeImage(imageBuffer) {
     const indoorOutdoor = await axios.post(
       'https://api-inference.huggingface.co/models/prithivMLmods/IndoorOutdoorNet',
       imageBuffer,
-      { headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}` } }
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
     );
     
     let environment = 'Indoor';
@@ -24,7 +24,7 @@ async function analyzeImage(imageBuffer) {
     const scene = await axios.post(
       'https://api-inference.huggingface.co/models/microsoft/resnet-50',
       imageBuffer,
-      { headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}` } }
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
     );
     
     let sceneCategory = 'General';
@@ -51,7 +51,7 @@ async function analyzeImage(imageBuffer) {
     const faces = await axios.post(
       'https://api-inference.huggingface.co/models/arnabdhar/YOLOv8-Face-Detection',
       imageBuffer,
-      { headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}` } }
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
     );
     
     let faceCount = 0;
