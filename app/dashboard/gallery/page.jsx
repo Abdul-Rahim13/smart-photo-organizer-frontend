@@ -353,7 +353,7 @@ function GridCard({ photo, selected, onSelect, onDelete, onToggleStar, onBreadcr
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
       </div>
 
       <div className="p-3">
@@ -744,7 +744,7 @@ export default function GalleryPage() {
         {/* List View */}
         {!isGlobalLoading && viewMode === 'list' && photos.length > 0 && (
           <div className="bg-[#1a1430] border border-slate-800/80 rounded-xl overflow-x-auto">
-            <div className="min-w-[800px]">
+            <div className="min-w-200">
               <div className="grid grid-cols-[2rem_3rem_1fr_100px_70px_90px_2.5rem] gap-3 px-4 py-3 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-800/80 bg-slate-900/30">
                 <button onClick={toggleAll} className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${selectedIds.length === photos.length ? 'bg-indigo-600 border-indigo-500' : 'border-slate-600 hover:border-slate-400'}`}>
                   {selectedIds.length === photos.length && <Check size={10} className="text-white" />}

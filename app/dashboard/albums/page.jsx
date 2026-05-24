@@ -168,9 +168,9 @@ function AlbumCard({ album, onFavorite, onDelete, onEdit, onClick, onDownload, o
 
   return (
     <div className="bg-[#1a1430] rounded-2xl border border-slate-800/60 hover:border-slate-700 transition-all duration-300 flex flex-col cursor-pointer" onClick={onClick}>
-      <div className="h-40 relative bg-gradient-to-br from-purple-900/30 to-indigo-900/30 flex items-center justify-center overflow-hidden rounded-t-2xl">
+      <div className="h-40 relative bg-linear-to-br from-purple-900/30 to-indigo-900/30 flex items-center justify-center overflow-hidden rounded-t-2xl">
         {coverPhoto?.imageUrl ? <img src={coverPhoto.imageUrl} alt={album.name} className="w-full h-full object-cover" /> : <FolderOpen size={48} className="text-gray-600" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-2 right-2 z-10 flex gap-2">
           <button onClick={(e) => { e.stopPropagation(); onFavorite(album.id); }} disabled={isTogglingFavorite}
             title={album.isFavorite ? "Remove Star" : "Add Star"}
@@ -328,7 +328,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           <button onClick={() => toggleSection('environment')}
-            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
+            className="w-full flex items-center justify-between p-3 bg-linear-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
             <div className="flex items-center gap-2">
               {expandedSections.environment ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <Sun size={16} className="text-yellow-400" />
@@ -337,7 +337,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
             </div>
           </button>
           {expandedSections.environment && (
-            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-125 overflow-y-auto pr-2">
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Indoor), "Indoor")}
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Outdoor), "Outdoor")}
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Unknown), "Unknown")}
@@ -347,7 +347,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
 
         <div className="flex-1">
           <button onClick={() => toggleSection('socialGroup')}
-            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
+            className="w-full flex items-center justify-between p-3 bg-linear-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
             <div className="flex items-center gap-2">
               {expandedSections.socialGroup ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <Users size={16} className="text-pink-400" />
@@ -356,7 +356,7 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
             </div>
           </button>
           {expandedSections.socialGroup && (
-            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-125 overflow-y-auto pr-2">
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Solo), "Solo")}
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Couple), "Couple")}
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Group), "Group")}
@@ -643,7 +643,7 @@ export default function AlbumsPage() {
         </div>
 
         {selectedAlbum && (
-          <div className="mb-6 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4">
+          <div className="mb-6 bg-linear-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <button onClick={() => setSelectedAlbum(null)} className="text-gray-400 hover:text-white transition cursor-pointer"><ArrowLeft size={18} /></button>
@@ -677,7 +677,7 @@ export default function AlbumsPage() {
           </div>
         ) : (
           <div className="bg-[#1a1430] border border-slate-800/80 rounded-xl overflow-x-auto">
-            <div className="min-w-[800px]">
+            <div className="min-w-200">
               <div className="grid grid-cols-[2rem_3rem_1fr_100px_100px_2.5rem] gap-3 px-4 py-3 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-800/80 bg-slate-900/30">
                 <button onClick={toggleAll} className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${selectedIds.length === filteredAlbums.length ? "bg-indigo-600 border-indigo-500" : "border-slate-600 hover:border-slate-400"}`}>{selectedIds.length === filteredAlbums.length && <Check size={10} className="text-white" />}</button>
                 <span>Preview</span><span>Name</span><span>Photos</span><span>Modified</span><span>Actions</span>
