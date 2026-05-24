@@ -316,7 +316,7 @@ function SearchResultsPanel({ query, results, onClose, onResultClick }) {
                 onClick={() => onResultClick(`/dashboard/photos?view=${photo.id}`, photo.title)}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-900/30 to-indigo-900/30 overflow-hidden shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-purple-900/30 to-indigo-900/30 overflow-hidden shrink-0">
                   {photo.imageUrl ? (
                     <img src={photo.imageUrl} alt={photo.title} className="w-full h-full object-cover" />
                   ) : (
@@ -348,7 +348,7 @@ function SearchResultsPanel({ query, results, onClose, onResultClick }) {
                 onClick={() => onResultClick(`/dashboard/albums?view=${album.id}`, album.name)}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-900/30 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-yellow-900/30 to-amber-900/30 flex items-center justify-center">
                   <FolderHeart size={14} className="text-yellow-400" />
                 </div>
                 <div className="flex-1 min-w-0">
