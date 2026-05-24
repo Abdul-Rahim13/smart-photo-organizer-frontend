@@ -23,7 +23,57 @@ import {
   toggleStarred,
 } from '../../../src/redux/slices/photoSlice';
 
-// ── CLOUDINARY URL OPTIMIZATION ──────────────────────────────────────────────
+// ─── TRASH HELPER FUNCTION ──────────────────────────────────────────────
+const addToTrash = (photo, type = 'photo') => {
+  if (typeof window === 'undefined') return;
+  
+  const trashItem = {
+    id: photo.id,
+    name: photo.title || "Untitled",
+    imageUrl: photo.url || photo.imageUrl,
+    qualityScore: photo.score || 50,
+    trashedAt: new Date().toISOString(),
+    type: type,
+    emoji: '📷',
+    originalData: photo
+  };
+  
+  const existingTrash = JSON.parse(localStorage.getItem('trash_items') || '[]');
+  localStorage.setItem('trash_items', JSON.stringify([trashItem, ...existingTrash]));
+};
+
+// ─── CONFIRM MODAL ──────────────────────────────────────────────────────
+function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText, icon: Icon, iconColor, loading }) {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#161026] border border-gray-700/60 rounded-2xl w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className={`p-3 rounded-xl ${iconColor} bg-opacity-10`}>
+              {Icon && <Icon size={24} className={iconColor} />}
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-lg">{title}</h3>
+              <p className="text-sm text-gray-400 mt-1">{message}</p>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-700 text-gray-400 text-sm font-medium hover:border-gray-500 hover:text-white transition cursor-pointer">
+              Cancel
+            </button>
+            <button onClick={onConfirm} disabled={loading} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+              {loading ? <Loader2 size={16} className="animate-spin" /> : confirmText || "Delete"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CLOUDINARY URL OPTIMIZATION ──────────────────────────────────────────────
 const optimizeCloudinaryUrl = (url, options = { width: 400, quality: 'auto', format: 'auto' }) => {
   if (!url) return null;
   
@@ -48,7 +98,7 @@ const optimizeCloudinaryUrl = (url, options = { width: 400, quality: 'auto', for
   return url;
 };
 
-// ── NORMALIZE PHOTO ─────────────────────────────────────────────
+// ─── NORMALIZE PHOTO ─────────────────────────────────────────────
 const normalise = (p) => {
   const id = p._id || p.id || "";
 
@@ -157,7 +207,7 @@ function ActionMenu({ photo, onClose, onDelete, onToggleStar, isTogglingStar }) 
         }
         onClose();
       } },
-    { icon: Trash2, label: 'Delete', color: 'text-red-400 hover:text-red-300',
+    { icon: Trash2, label: 'Move to Trash', color: 'text-red-400 hover:text-red-300',
       onClick: () => { onDelete(photo.id); onClose(); } },
   ];
   
@@ -416,6 +466,7 @@ export default function GalleryPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [togglingStarId, setTogglingStarId] = useState(null);
   const [deletingIds, setDeletingIds] = useState([]);
+  const [deleting, setDeleting] = useState(false);
 
   const filterRef = useRef(null);
   const hasFetchedRef = useRef(false);
@@ -461,17 +512,14 @@ export default function GalleryPage() {
   const handleApplyFilters = useCallback((f) => {
     const params = {};
     
-    // Environment filter
     if (f.environment !== 'Any') {
       params.environment = f.environment;
     }
     
-    // Social group filter
     if (f.socialGroup !== 'Any') {
       params.socialGroup = f.socialGroup;
     }
     
-    // Sort filter
     if (f.sort === 'newest') { params.sortBy = 'createdAt'; params.sortOrder = 'desc'; }
     else if (f.sort === 'oldest') { params.sortBy = 'createdAt'; params.sortOrder = 'asc'; }
     else if (f.sort === 'stars') { params.sortBy = 'isStarred'; params.sortOrder = 'desc'; }
@@ -493,11 +541,21 @@ export default function GalleryPage() {
     }
   };
 
+  // ─── UPDATED HANDLE DELETE WITH TRASH INTEGRATION ──────────────────────────
   const handleDelete = async (id) => {
     setDeletingIds(prev => [...prev, id]);
+    
+    // Find the photo to delete
+    const photoToDelete = photos.find(p => p.id === id);
+    
+    if (photoToDelete) {
+      // Add to trash storage
+      addToTrash(photoToDelete, 'photo');
+      toast.info(`📷 "${photoToDelete.title}" moved to trash`);
+    }
+    
     try {
       await dispatch(deletePhotoAction(id)).unwrap();
-      toast.success('Photo deleted');
       setSelectedIds(prev => prev.filter(x => x !== id));
     } catch (err) {
       toast.error('Delete failed');
@@ -507,16 +565,25 @@ export default function GalleryPage() {
     }
   };
 
+  // ─── UPDATED BULK DELETE WITH TRASH INTEGRATION ───────────────────────────
   const handleBulkDelete = async () => {
-    setDeletingIds(selectedIds);
+    setDeleting(true);
+    
+    // Add all selected photos to trash
+    const photosToDelete = photos.filter(p => selectedIds.includes(p.id));
+    photosToDelete.forEach(photo => {
+      addToTrash(photo, 'photo');
+    });
+    toast.info(`📷 ${selectedIds.length} photo(s) moved to trash`);
+    
     try {
       await Promise.all(selectedIds.map(id => dispatch(deletePhotoAction(id)).unwrap()));
-      toast.success(`${selectedIds.length} photo(s) deleted`);
+      toast.success(`${selectedIds.length} photo(s) moved to trash`);
       setSelectedIds([]);
     } catch (err) {
       toast.error('Some deletions failed');
     } finally {
-      setDeletingIds([]);
+      setDeleting(false);
     }
   };
 
@@ -524,17 +591,14 @@ export default function GalleryPage() {
   const getFilteredPhotos = useCallback(() => {
     let filtered = [...displayedPhotos];
     
-    // Apply environment filter
     if (filters.environment !== 'Any') {
       filtered = filtered.filter(p => p.environment === filters.environment);
     }
     
-    // Apply social group filter
     if (filters.socialGroup !== 'Any') {
       filtered = filtered.filter(p => p.socialGroup === filters.socialGroup);
     }
     
-    // Apply sorting
     if (filters.sort === 'newest') {
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (filters.sort === 'oldest') {
@@ -581,8 +645,8 @@ export default function GalleryPage() {
               <button onClick={toggleAll} className="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 rounded-lg transition cursor-pointer">
                 {selectedIds.length === photos.length ? 'Deselect All' : 'Select All'}
               </button>
-              <button onClick={handleBulkDelete} disabled={deletingIds.length > 0} className="px-3 py-1.5 text-xs font-medium bg-rose-600/20 text-rose-400 hover:bg-rose-600/30 rounded-lg transition cursor-pointer disabled:opacity-50">
-                Delete {selectedIds.length}
+              <button onClick={handleBulkDelete} disabled={deleting} className="px-3 py-1.5 text-xs font-medium bg-rose-600/20 text-rose-400 hover:bg-rose-600/30 rounded-lg transition cursor-pointer disabled:opacity-50">
+                {deleting ? <Loader2 size={12} className="animate-spin" /> : `Move to Trash (${selectedIds.length})`}
               </button>
             </div>
           )}
@@ -702,23 +766,17 @@ export default function GalleryPage() {
         )}
 
         {/* Delete Modal */}
-        {deleteTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-[#1a1430] border border-slate-700 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
-                <Trash2 size={20} className="text-rose-400" />
-              </div>
-              <h3 className="text-center text-lg font-semibold mb-1">Delete Photo?</h3>
-              <p className="text-slate-400 text-xs text-center mb-6">This action cannot be undone. The photo will be permanently removed.</p>
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-xs font-medium hover:bg-white/5 transition cursor-pointer">Cancel</button>
-                <button onClick={() => handleDelete(deleteTarget)} disabled={deletingIds.includes(deleteTarget)} className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition disabled:opacity-50 cursor-pointer">
-                  {deletingIds.includes(deleteTarget) ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'Delete Forever'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmModal
+          isOpen={!!deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+          title="Move to Trash?"
+          message="This photo will be moved to trash and will be automatically deleted after 30 days. You can restore it from trash."
+          confirmText="Move to Trash"
+          icon={Trash2}
+          iconColor="text-red-400"
+          loading={deleteTarget && deletingIds.includes(deleteTarget)}
+        />
       </main>
 
       <style jsx global>{`

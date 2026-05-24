@@ -73,7 +73,7 @@ const normalizePhoto = (photo) => {
 };
 
 // ─────────────────────────────────────────────
-// THUNKS (unchanged)
+// THUNKS
 // ─────────────────────────────────────────────
 export const fetchAllPhotos = createAsyncThunk(
   "photos/fetchAll",
@@ -154,6 +154,20 @@ export const toggleStarred = createAsyncThunk(
   }
 );
 
+// ─── ADD THIS NEW FUNCTION ─────────────────────────────────────────────
+export const updatePhotoMetadata = createAsyncThunk(
+  "photos/updateMetadata",
+  async ({ id, metadata }, thunkAPI) => {
+    try {
+      const res = await axios.put(`${API}/${id}/metadata`, metadata, { headers: getAuthHeaders() });
+      return res.data?.data || res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message || "Update metadata failed");
+    }
+  }
+);
+// ───────────────────────────────────────────────────────────────────────
+
 export const addPhotoToStore = createAsyncThunk(
   "photos/addPhoto",
   async (photoData) => {
@@ -228,6 +242,15 @@ const photoSlice = createSlice({
 
     // STAR
     builder.addCase(toggleStarred.fulfilled, (state, action) => {
+      const updated = normalizePhoto(action.payload);
+      if (!updated) return;
+      const updateArray = (arr) => arr.map((p) => (p.id === updated.id ? { ...p, ...updated } : p));
+      state.items = updateArray(state.items);
+      state.displayedPhotos = updateArray(state.displayedPhotos);
+    });
+
+    // UPDATE METADATA - ADD THIS CASE
+    builder.addCase(updatePhotoMetadata.fulfilled, (state, action) => {
       const updated = normalizePhoto(action.payload);
       if (!updated) return;
       const updateArray = (arr) => arr.map((p) => (p.id === updated.id ? { ...p, ...updated } : p));

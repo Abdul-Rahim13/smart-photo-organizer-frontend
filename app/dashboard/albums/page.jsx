@@ -21,6 +21,57 @@ import {
   Users, Heart, User, Home, TreePine, Sun, Moon, ChevronDown, ChevronRight
 } from "lucide-react";
 
+// ─── TRASH HELPER FUNCTIONS ──────────────────────────────────────────────────────
+const addToTrash = (item, type = 'album') => {
+  if (typeof window === 'undefined') return;
+  
+  const trashItem = {
+    id: item.id,
+    name: item.name,
+    imageUrl: item.photosList?.[0]?.imageUrl || null,
+    qualityScore: 50,
+    trashedAt: new Date().toISOString(),
+    type: type,
+    emoji: '📁',
+    originalData: item
+  };
+  
+  const existingTrash = JSON.parse(localStorage.getItem('trash_items') || '[]');
+  localStorage.setItem('trash_items', JSON.stringify([trashItem, ...existingTrash]));
+};
+
+// ─── CONFIRM MODAL ──────────────────────────────────────────────────────────────
+function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, icon: Icon, iconColor }) {
+  if (!isOpen) return null;
+  
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#161026] border border-gray-700/60 rounded-2xl w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className={`p-3 rounded-xl ${iconColor} bg-opacity-10`}>
+              {Icon && <Icon size={24} className={iconColor} />}
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-lg">{title}</h3>
+              <p className="text-sm text-gray-400 mt-1">{message}</p>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-700 text-gray-400 text-sm font-medium hover:border-gray-500 hover:text-white transition cursor-pointer">
+              {cancelText || "Cancel"}
+            </button>
+            <button onClick={onConfirm} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition cursor-pointer">
+              {confirmText || "Confirm"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ─── STAT CARD ────────────────────────────────────────────────────────────────
 function StatCard({ label, value, icon: Icon, iconBg, iconColor }) {
   return (
@@ -192,13 +243,8 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Group photos by environment (Indoor/Outdoor)
   const photosByEnvironment = useMemo(() => {
-    const groups = {
-      Indoor: [],
-      Outdoor: [],
-      Unknown: []
-    };
+    const groups = { Indoor: [], Outdoor: [], Unknown: [] };
     photos.forEach(photo => {
       const env = photo.environment || (photo.sceneCategory === 'Outdoor' ? 'Outdoor' : 'Unknown');
       if (env === 'Indoor') groups.Indoor.push(photo);
@@ -208,14 +254,8 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
     return groups;
   }, [photos]);
 
-  // Group photos by social group (Solo/Couple/Group)
   const photosBySocialGroup = useMemo(() => {
-    const groups = {
-      Solo: [],
-      Couple: [],
-      Group: [],
-      Empty: []
-    };
+    const groups = { Solo: [], Couple: [], Group: [], Empty: [] };
     photos.forEach(photo => {
       const social = photo.socialGroup || 'Solo';
       if (groups[social]) groups[social].push(photo);
@@ -224,18 +264,8 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
     return groups;
   }, [photos]);
 
-  const environmentIcons = {
-    Indoor: <Home size={14} />,
-    Outdoor: <TreePine size={14} />,
-    Unknown: <ImageIcon size={14} />
-  };
-
-  const socialIcons = {
-    Solo: <User size={14} />,
-    Couple: <Heart size={14} />,
-    Group: <Users size={14} />,
-    Empty: <ImageIcon size={14} />
-  };
+  const environmentIcons = { Indoor: <Home size={14} />, Outdoor: <TreePine size={14} />, Unknown: <ImageIcon size={14} /> };
+  const socialIcons = { Solo: <User size={14} />, Couple: <Heart size={14} />, Group: <Users size={14} />, Empty: <ImageIcon size={14} /> };
 
   const socialColors = {
     Solo: "text-blue-400 bg-blue-500/10 border-blue-500/20",
@@ -250,7 +280,6 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
     Unknown: "text-gray-400 bg-gray-500/10 border-gray-500/20"
   };
 
-  // Filter photos by search term
   const filterPhotos = (photoList) => {
     if (!searchTerm) return photoList;
     return photoList.filter(p => 
@@ -259,7 +288,6 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
     );
   };
 
-  // Render photo grid for a category
   const renderPhotoGrid = (photosList, categoryName) => {
     if (photosList.length === 0) return null;
     
@@ -276,26 +304,11 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
             const isSelected = selectedPhotos.includes(photoId);
             const imageUrl = photo.imageUrl || photo.url;
             return (
-              <div 
-                key={photoId} 
-                onClick={() => onTogglePhoto(photoId)}
-                className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${isSelected ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-transparent hover:border-gray-600"}`}
-              >
-                {imageUrl ? (
-                  <img src={imageUrl} alt={photo.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-black/40 flex items-center justify-center">
-                    <Camera size={24} className="text-gray-500" />
-                  </div>
-                )}
-                {isSelected && (
-                  <div className="absolute top-1 right-1 bg-indigo-600 rounded-full p-0.5">
-                    <Check size={12} className="text-white" />
-                  </div>
-                )}
-                <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1">
-                  <p className="text-[8px] text-white truncate">{photo.title || "Untitled"}</p>
-                </div>
+              <div key={photoId} onClick={() => onTogglePhoto(photoId)}
+                className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${isSelected ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-transparent hover:border-gray-600"}`}>
+                {imageUrl ? <img src={imageUrl} alt={photo.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-black/40 flex items-center justify-center"><Camera size={24} className="text-gray-500" /></div>}
+                {isSelected && <div className="absolute top-1 right-1 bg-indigo-600 rounded-full p-0.5"><Check size={12} className="text-white" /></div>}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1"><p className="text-[8px] text-white truncate">{photo.title || "Untitled"}</p></div>
               </div>
             );
           })}
@@ -306,26 +319,16 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
       <div className="relative">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-        <input 
-          value={searchTerm} 
-          onChange={(e) => onSearchChange(e.target.value)} 
-          placeholder="Search photos by name or category..."
-          className="w-full bg-[#0f0a19] border border-gray-700/60 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-indigo-500/50 transition" 
-        />
+        <input value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} placeholder="Search photos by name or category..."
+          className="w-full bg-[#0f0a19] border border-gray-700/60 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-indigo-500/50 transition" />
       </div>
 
-      {/* TWO COLUMN LAYOUT - Environment on left, Social Group on right */}
       <div className="flex flex-col lg:flex-row gap-6">
-        
-        {/* LEFT COLUMN - Environment Section (Indoor/Outdoor) */}
         <div className="flex-1">
-          <button 
-            onClick={() => toggleSection('environment')}
-            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3"
-          >
+          <button onClick={() => toggleSection('environment')}
+            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
             <div className="flex items-center gap-2">
               {expandedSections.environment ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <Sun size={16} className="text-yellow-400" />
@@ -333,7 +336,6 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
               <span className="text-[10px] text-gray-500">({photos.length} photos)</span>
             </div>
           </button>
-          
           {expandedSections.environment && (
             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
               {renderPhotoGrid(filterPhotos(photosByEnvironment.Indoor), "Indoor")}
@@ -343,12 +345,9 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
           )}
         </div>
 
-        {/* RIGHT COLUMN - Social Group Section (Solo/Couple/Group) */}
         <div className="flex-1">
-          <button 
-            onClick={() => toggleSection('socialGroup')}
-            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3"
-          >
+          <button onClick={() => toggleSection('socialGroup')}
+            className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-gray-800 hover:bg-white/5 transition mb-3">
             <div className="flex items-center gap-2">
               {expandedSections.socialGroup ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               <Users size={16} className="text-pink-400" />
@@ -356,7 +355,6 @@ function PhotoSelectionSection({ photos, selectedPhotos, onTogglePhoto, searchTe
               <span className="text-[10px] text-gray-500">({photos.length} photos)</span>
             </div>
           </button>
-          
           {expandedSections.socialGroup && (
             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
               {renderPhotoGrid(filterPhotos(photosBySocialGroup.Solo), "Solo")}
@@ -381,17 +379,10 @@ function AlbumModal({ isOpen, onClose, onSubmit, loading, availablePhotos, editA
 
   useEffect(() => {
     if (editAlbum && isOpen) {
-      setName(editAlbum.name || ""); 
-      setDesc(editAlbum.description || "");
+      setName(editAlbum.name || ""); setDesc(editAlbum.description || "");
       setType(editAlbum.type || "private");
       setSelectedPhotos(editAlbum.photosList?.map((p) => p._id || p.id) || []);
-    } else if (!isOpen) { 
-      setName(""); 
-      setDesc(""); 
-      setType("private"); 
-      setSelectedPhotos([]); 
-      setSearchTerm(""); 
-    }
+    } else if (!isOpen) { setName(""); setDesc(""); setType("private"); setSelectedPhotos([]); setSearchTerm(""); }
   }, [editAlbum, isOpen]);
 
   const togglePhoto = (id) => setSelectedPhotos((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -411,67 +402,29 @@ function AlbumModal({ isOpen, onClose, onSubmit, loading, availablePhotos, editA
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-[#161026] border border-gray-700/60 rounded-2xl w-full max-w-6xl shadow-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
-          <div>
-            <h3 className="font-bold text-white text-lg">{editAlbum ? "Edit Album" : "Create Album"}</h3>
-            <p className="text-[10px] text-gray-500">Organize your photos by environment and social groups</p>
-          </div>
+          <div><h3 className="font-bold text-white text-lg">{editAlbum ? "Edit Album" : "Create Album"}</h3><p className="text-[10px] text-gray-500">Organize your photos by environment and social groups</p></div>
           <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer transition"><X size={18} /></button>
         </div>
         
         <div className="flex flex-col md:flex-row gap-6 p-6 overflow-y-auto flex-1">
-          {/* LEFT COLUMN - Album Details */}
           <div className="w-full md:w-80 shrink-0 space-y-5">
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 mb-1 block">Album Name *</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Beach Vacation"
-                className="w-full bg-[#0f0a19] border border-gray-700/60 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition" />
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 mb-1 block">Description</label>
-              <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Add a description..."
-                className="w-full bg-[#0f0a19] border border-gray-700/60 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 resize-none transition" />
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 mb-1 block">Privacy</label>
-              <div className="flex gap-2">
-                {["private", "shared"].map((t) => (
-                  <button key={t} onClick={() => setType(t)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border text-sm font-medium transition cursor-pointer capitalize ${type === t ? "bg-indigo-600 border-indigo-500 text-white" : "bg-[#0f0a19] border-gray-700 text-gray-400 hover:border-gray-500"}`}>
-                    {t === "private" ? <Lock size={14} /> : <Globe size={14} />} {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Selected Photos Summary */}
-            {selectedPhotos.length > 0 && (
-              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
-                <p className="text-[10px] font-semibold text-indigo-400 mb-1">Selected Photos</p>
-                <p className="text-3xl font-bold text-white">{selectedPhotos.length}</p>
-                <p className="text-[9px] text-gray-400">photos will be added to this album</p>
-              </div>
-            )}
+            <div><label className="text-[11px] font-bold text-gray-400 mb-1 block">Album Name *</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Beach Vacation" className="w-full bg-[#0f0a19] border border-gray-700/60 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 transition" /></div>
+            <div><label className="text-[11px] font-bold text-gray-400 mb-1 block">Description</label>
+              <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Add a description..." className="w-full bg-[#0f0a19] border border-gray-700/60 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500/50 resize-none transition" /></div>
+            <div><label className="text-[11px] font-bold text-gray-400 mb-1 block">Privacy</label>
+              <div className="flex gap-2">{["private", "shared"].map((t) => (<button key={t} onClick={() => setType(t)} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border text-sm font-medium transition cursor-pointer capitalize ${type === t ? "bg-indigo-600 border-indigo-500 text-white" : "bg-[#0f0a19] border-gray-700 text-gray-400 hover:border-gray-500"}`}>{t === "private" ? <Lock size={14} /> : <Globe size={14} />} {t}</button>))}</div></div>
+            {selectedPhotos.length > 0 && (<div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4"><p className="text-[10px] font-semibold text-indigo-400 mb-1">Selected Photos</p><p className="text-3xl font-bold text-white">{selectedPhotos.length}</p><p className="text-[9px] text-gray-400">photos will be added to this album</p></div>)}
           </div>
           
-          {/* RIGHT COLUMN - Categorized Photo Selection (Block-wise 2-column layout) */}
           <div className="flex-1 border-t md:border-t-0 md:border-l border-gray-800/60 pt-4 md:pt-0 md:pl-6">
-            <PhotoSelectionSection 
-              photos={availablePhotos}
-              selectedPhotos={selectedPhotos}
-              onTogglePhoto={togglePhoto}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
+            <PhotoSelectionSection photos={availablePhotos} selectedPhotos={selectedPhotos} onTogglePhoto={togglePhoto} searchTerm={searchTerm} onSearchChange={setSearchTerm} />
           </div>
         </div>
         
         <div className="flex gap-3 px-6 pb-6 pt-4 border-t border-gray-800/40 shrink-0">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-700 text-gray-400 text-sm font-medium hover:border-gray-500 hover:text-white transition cursor-pointer">Cancel</button>
-          <button onClick={handleSubmit} disabled={!name.trim() || loading}
-            className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer">
-            {loading && <Loader2 size={16} className="animate-spin" />}
-            {editAlbum ? "Update Album" : "Create Album"}
-          </button>
+          <button onClick={handleSubmit} disabled={!name.trim() || loading} className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer">{loading && <Loader2 size={16} className="animate-spin" />}{editAlbum ? "Update Album" : "Create Album"}</button>
         </div>
       </div>
     </div>
@@ -502,7 +455,7 @@ async function downloadAlbumAsZip(album) {
       if (url) {
         try {
           const blob = await (await fetch(url)).blob();
-          const ext  = blob.type.split("/")[1] || "jpg";
+          const ext = blob.type.split("/")[1] || "jpg";
           zip.file(`${String(i + 1).padStart(3, "0")}_${photo.title?.replace(/[^a-z0-9]/gi, "_") || "photo"}.${ext}`, blob);
           ok++;
           if (i % 5 === 0) toast.loading(`Downloading... ${ok}/${album.photosList.length}`, { id: tid });
@@ -524,13 +477,17 @@ export default function AlbumsPage() {
   const { items, loading, submitting, error } = useSelector((s) => s.albums);
   const { items: photos } = useSelector((s) => s.photos);
 
-  const [search, setSearch]               = useState("");
-  const [viewMode, setViewMode]           = useState("grid");
-  const [showModal, setShowModal]         = useState(false);
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState("grid");
+  const [showModal, setShowModal] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
-  const [editingAlbum, setEditingAlbum]   = useState(null);
+  const [editingAlbum, setEditingAlbum] = useState(null);
   const [togglingFavoriteId, setTogglingFavoriteId] = useState(null);
-  const [selectedIds, setSelectedIds]     = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  
+  // Modal states
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, albumId: null, albumName: "" });
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState({ isOpen: false, count: 0 });
 
   useEffect(() => { dispatch(fetchAlbums()); dispatch(fetchAllPhotos()); }, [dispatch]);
 
@@ -564,16 +521,52 @@ export default function AlbumsPage() {
       await dispatch(fetchAlbums());
     } catch (err) {
       toast.error(err || "Failed to update favorite — please try again.");
-      console.error("Toggle favorite error:", err);
-    } finally { 
-      setTogglingFavoriteId(null);
-    }
+    } finally { setTogglingFavoriteId(null); }
   }, [dispatch, togglingFavoriteId]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this album?")) return;
-    try { await dispatch(deleteAlbum(id)).unwrap(); if (selectedAlbum?.id === id) setSelectedAlbum(null); toast.success("🗑️ Album deleted"); dispatch(fetchAlbums()); }
-    catch { toast.error("Failed to delete album"); }
+  // Single delete with modal
+  const handleDeleteClick = (id, name) => {
+    setDeleteConfirm({ isOpen: true, albumId: id, albumName: name });
+  };
+
+  const handleConfirmDelete = async () => {
+    const { albumId, albumName } = deleteConfirm;
+    setDeleteConfirm({ isOpen: false, albumId: null, albumName: "" });
+    
+    const albumToDelete = albums.find(album => album.id === albumId);
+    if (albumToDelete) {
+      addToTrash(albumToDelete, 'album');
+      toast.info(`📁 "${albumName}" moved to trash`);
+    }
+    
+    try {
+      await dispatch(deleteAlbum(albumId)).unwrap();
+      if (selectedAlbum?.id === albumId) setSelectedAlbum(null);
+      dispatch(fetchAlbums());
+    } catch {
+      toast.error("Failed to delete album");
+    }
+  };
+
+  // Bulk delete with modal
+  const handleBulkDeleteClick = () => {
+    setBulkDeleteConfirm({ isOpen: true, count: selectedIds.length });
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    const count = bulkDeleteConfirm.count;
+    setBulkDeleteConfirm({ isOpen: false, count: 0 });
+    
+    const albumsToDelete = albums.filter(album => selectedIds.includes(album.id));
+    albumsToDelete.forEach(album => addToTrash(album, 'album'));
+    toast.info(`📁 ${count} album(s) moved to trash`);
+    
+    for (const id of selectedIds) {
+      await dispatch(deleteAlbum(id)).unwrap();
+    }
+    if (selectedAlbum && selectedIds.includes(selectedAlbum.id)) setSelectedAlbum(null);
+    dispatch(fetchAlbums());
+    setSelectedIds([]);
   };
 
   const handleCreate = async (payload) => {
@@ -588,157 +581,112 @@ export default function AlbumsPage() {
 
   const stats = { total: albums.length, photos: albums.reduce((s, a) => s + a.photosCount, 0), starred: albums.filter((a) => a.isFavorite).length };
   const toggleSelect = (id) => setSelectedIds((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
-  const toggleAll    = ()   => setSelectedIds(selectedIds.length === filteredAlbums.length ? [] : filteredAlbums.map((a) => a.id));
+  const toggleAll = () => setSelectedIds(selectedIds.length === filteredAlbums.length ? [] : filteredAlbums.map((a) => a.id));
 
   return (
     <div className="m-7 min-h-screen bg-[#0a0815] text-slate-100">
-      <TopBar  title="My Albums" showStatus={false} searchPlaceholder="Search albums..." onSearch={setSearch} />
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, albumId: null, albumName: "" })}
+        onConfirm={handleConfirmDelete}
+        title="Move to Trash?"
+        message={`Are you sure you want to move "${deleteConfirm.albumName}" to trash? You can restore it within 30 days.`}
+        confirmText="Move to Trash"
+        cancelText="Cancel"
+        icon={Trash2}
+        iconColor="text-red-400"
+      />
+
+      <ConfirmModal
+        isOpen={bulkDeleteConfirm.isOpen}
+        onClose={() => setBulkDeleteConfirm({ isOpen: false, count: 0 })}
+        onConfirm={handleConfirmBulkDelete}
+        title="Move Multiple Albums to Trash?"
+        message={`Are you sure you want to move ${bulkDeleteConfirm.count} album(s) to trash? You can restore them within 30 days.`}
+        confirmText="Move to Trash"
+        cancelText="Cancel"
+        icon={Trash2}
+        iconColor="text-red-400"
+      />
+
+      <TopBar title="My Albums" showStatus={false} searchPlaceholder="Search albums..." onSearch={setSearch} />
 
       <div className="p-6 lg:p-8">
         <AlbumModal isOpen={showModal} onClose={() => { setShowModal(false); setEditingAlbum(null); }}
           onSubmit={editingAlbum ? handleUpdate : handleCreate} loading={submitting}
           availablePhotos={availablePhotos} editAlbum={editingAlbum} />
 
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              📁 My Albums
-              <span className="text-xs font-normal text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-full">{stats.total} albums</span>
-            </h1>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">📁 My Albums<span className="text-xs font-normal text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-full">{stats.total} albums</span></h1>
             <p className="text-slate-400 text-sm mt-1">{stats.total} albums • {stats.photos} photos</p>
           </div>
-          <button onClick={() => { setEditingAlbum(null); setShowModal(true); }}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer">
-            <Plus size={16} /> Create Album
-          </button>
+          <button onClick={() => { setEditingAlbum(null); setShowModal(true); }} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer"><Plus size={16} /> Create Album</button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <StatCard label="Total Albums" value={stats.total}   icon={FolderOpen} iconBg="bg-yellow-500/10" iconColor="text-yellow-400" />
-          <StatCard label="Total Photos" value={stats.photos}  icon={ImageIcon}  iconBg="bg-indigo-500/10" iconColor="text-indigo-400" />
-          <StatCard label="Starred"      value={stats.starred} icon={Star}       iconBg="bg-yellow-500/10" iconColor="text-yellow-400" />
+          <StatCard label="Total Albums" value={stats.total} icon={FolderOpen} iconBg="bg-yellow-500/10" iconColor="text-yellow-400" />
+          <StatCard label="Total Photos" value={stats.photos} icon={ImageIcon} iconBg="bg-indigo-500/10" iconColor="text-indigo-400" />
+          <StatCard label="Starred" value={stats.starred} icon={Star} iconBg="bg-yellow-500/10" iconColor="text-yellow-400" />
         </div>
 
-        {/* Search & View */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="relative flex-1 max-w-sm">
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search albums..."
-              className="w-full bg-[#161026] border border-slate-800/70 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500/50 transition" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search albums..." className="w-full bg-[#161026] border border-slate-800/70 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500/50 transition" />
             {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white cursor-pointer"><X size={14} /></button>}
           </div>
           <div className="flex gap-2 bg-slate-900/30 p-1 rounded-xl">
-            <button onClick={() => setViewMode("grid")} title="Grid View"
-              className={`p-1.5 rounded-lg transition cursor-pointer ${viewMode === "grid" ? "bg-indigo-600/20 text-indigo-400" : "text-slate-500 hover:text-white"}`}><Grid3X3 size={16} /></button>
-            <button onClick={() => setViewMode("list")} title="List View"
-              className={`p-1.5 rounded-lg transition cursor-pointer ${viewMode === "list" ? "bg-indigo-600/20 text-indigo-400" : "text-slate-500 hover:text-white"}`}><Filter size={16} /></button>
+            <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded-lg transition cursor-pointer ${viewMode === "grid" ? "bg-indigo-600/20 text-indigo-400" : "text-slate-500 hover:text-white"}`}><Grid3X3 size={16} /></button>
+            <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-lg transition cursor-pointer ${viewMode === "list" ? "bg-indigo-600/20 text-indigo-400" : "text-slate-500 hover:text-white"}`}><Filter size={16} /></button>
           </div>
         </div>
 
-        {/* Selected Album Preview */}
         {selectedAlbum && (
           <div className="mb-6 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <button onClick={() => setSelectedAlbum(null)} className="text-gray-400 hover:text-white transition cursor-pointer"><ArrowLeft size={18} /></button>
-                <div>
-                  <p className="text-[10px] text-indigo-400 uppercase tracking-wider">Selected Album</p>
-                  <h3 className="text-lg font-bold text-white">{selectedAlbum.name}</h3>
-                  <p className="text-xs text-gray-400">{selectedAlbum.description}</p>
-                </div>
+                <div><p className="text-[10px] text-indigo-400 uppercase tracking-wider">Selected Album</p><h3 className="text-lg font-bold text-white">{selectedAlbum.name}</h3><p className="text-xs text-gray-400">{selectedAlbum.description}</p></div>
               </div>
-              <button onClick={() => downloadAlbumAsZip(selectedAlbum)}
-                className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition cursor-pointer bg-indigo-500/10 px-2 py-1 rounded-lg">
-                <Download size={12} /> Download ZIP
-              </button>
+              <button onClick={() => downloadAlbumAsZip(selectedAlbum)} className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition cursor-pointer bg-indigo-500/10 px-2 py-1 rounded-lg"><Download size={12} /> Download ZIP</button>
             </div>
             {selectedAlbum.photosList?.length > 0 ? (
-              <>
-                <p className="text-[11px] text-gray-400 mb-2">{selectedAlbum.photosList.length} photos</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                  {selectedAlbum.photosList.map((photo) => {
-                    const imageUrl = photo.imageUrl || photo.url;
-                    return (
-                      <div key={photo._id || photo.id} className="group relative aspect-square rounded-lg bg-black/40 border border-white/10 overflow-hidden cursor-pointer hover:border-indigo-500/50 transition">
-                        {imageUrl ? <img src={imageUrl} alt={photo.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Camera size={20} className="text-gray-500" /></div>}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                          <p className="text-[9px] text-white text-center px-1 truncate">{photo.title || "Untitled"}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-500">No photos yet</p>
-                <button onClick={() => { setEditingAlbum(selectedAlbum); setShowModal(true); }} className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition cursor-pointer">+ Add photos</button>
-              </div>
-            )}
+              <><p className="text-[11px] text-gray-400 mb-2">{selectedAlbum.photosList.length} photos</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                {selectedAlbum.photosList.map((photo) => { const imageUrl = photo.imageUrl || photo.url; return (<div key={photo._id || photo.id} className="group relative aspect-square rounded-lg bg-black/40 border border-white/10 overflow-hidden cursor-pointer hover:border-indigo-500/50 transition">{imageUrl ? <img src={imageUrl} alt={photo.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Camera size={20} className="text-gray-500" /></div>}<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><p className="text-[9px] text-white text-center px-1 truncate">{photo.title || "Untitled"}</p></div></div>); })}
+              </div></>
+            ) : (<div className="text-center py-6"><p className="text-sm text-gray-500">No photos yet</p><button onClick={() => { setEditingAlbum(selectedAlbum); setShowModal(true); }} className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition cursor-pointer">+ Add photos</button></div>)}
           </div>
         )}
 
-        {/* Bulk Actions */}
         {selectedIds.length > 0 && (
           <div className="flex items-center gap-4 mb-6 p-3 bg-indigo-600/10 border border-indigo-500/20 rounded-xl">
-            <button onClick={toggleAll} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition cursor-pointer">
-              {selectedIds.length === filteredAlbums.length ? "Deselect All" : "Select All"}
-            </button>
-            <button onClick={() => { selectedIds.forEach(handleDelete); setSelectedIds([]); }}
-              className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer ml-auto">
-              <Trash2 size={13} /> Delete ({selectedIds.length})
-            </button>
+            <button onClick={toggleAll} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition cursor-pointer">{selectedIds.length === filteredAlbums.length ? "Deselect All" : "Select All"}</button>
+            <button onClick={handleBulkDeleteClick} className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer ml-auto"><Trash2 size={13} /> Move to Trash ({selectedIds.length})</button>
           </div>
         )}
 
         {loading && <div className="flex justify-center items-center py-20"><Loader2 size={32} className="text-indigo-400 animate-spin" /><p className="ml-3 text-gray-400 text-sm">Loading albums...</p></div>}
+        {error && (<div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center"><AlertTriangle className="mx-auto text-red-400 mb-2" size={24} /><p className="text-sm text-gray-300">{error}</p><button onClick={() => dispatch(fetchAlbums())} className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer transition">Try Again</button></div>)}
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center">
-            <AlertTriangle className="mx-auto text-red-400 mb-2" size={24} />
-            <p className="text-sm text-gray-300">{error}</p>
-            <button onClick={() => dispatch(fetchAlbums())} className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer transition">Try Again</button>
+        {!loading && !error && (viewMode === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredAlbums.map((album) => (<AlbumCard key={album.id} album={album} onFavorite={handleToggleStar} onDelete={handleDeleteClick} onEdit={(a) => { setEditingAlbum(a); setShowModal(true); }} onClick={() => setSelectedAlbum(album)} onDownload={downloadAlbumAsZip} onView={setSelectedAlbum} isTogglingFavorite={togglingFavoriteId === album.id} />))}
+            {filteredAlbums.length === 0 && <EmptyState />}
           </div>
-        )}
-
-        {!loading && !error && (
-          viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredAlbums.map((album) => (
-                <AlbumCard key={album.id} album={album} onFavorite={handleToggleStar} onDelete={handleDelete}
-                  onEdit={(a) => { setEditingAlbum(a); setShowModal(true); }} onClick={() => setSelectedAlbum(album)}
-                  onDownload={downloadAlbumAsZip} onView={setSelectedAlbum} isTogglingFavorite={togglingFavoriteId === album.id} />
-              ))}
-              {filteredAlbums.length === 0 && <EmptyState />}
-            </div>
-          ) : (
-            <div className="bg-[#1a1430] border border-slate-800/80 rounded-xl overflow-x-auto">
-              <div className="min-w-[800px]">
-                <div className="grid grid-cols-[2rem_3rem_1fr_100px_100px_2.5rem] gap-3 px-4 py-3 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-800/80 bg-slate-900/30">
-                  <button onClick={toggleAll} className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${selectedIds.length === filteredAlbums.length ? "bg-indigo-600 border-indigo-500" : "border-slate-600 hover:border-slate-400"}`}>
-                    {selectedIds.length === filteredAlbums.length && <Check size={10} className="text-white" />}
-                  </button>
-                  <span>Preview</span><span>Name</span><span>Photos</span><span>Modified</span><span>Actions</span>
-                </div>
-                {filteredAlbums.map((album) => (
-                  <AlbumRow key={album.id} album={album} selected={selectedIds.includes(album.id)}
-                    onSelect={toggleSelect} onDelete={handleDelete}
-                    onEdit={(a) => { setEditingAlbum(a); setShowModal(true); }}
-                    onDownload={downloadAlbumAsZip} onView={setSelectedAlbum}
-                    onToggleStar={handleToggleStar} isTogglingFavorite={togglingFavoriteId === album.id} />
-                ))}
-                {filteredAlbums.length === 0 && (
-                  <div className="py-16 text-center">
-                    <p className="text-gray-500">No albums found</p>
-                    <button onClick={() => setShowModal(true)} className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition cursor-pointer">Create your first album</button>
-                  </div>
-                )}
+        ) : (
+          <div className="bg-[#1a1430] border border-slate-800/80 rounded-xl overflow-x-auto">
+            <div className="min-w-[800px]">
+              <div className="grid grid-cols-[2rem_3rem_1fr_100px_100px_2.5rem] gap-3 px-4 py-3 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-800/80 bg-slate-900/30">
+                <button onClick={toggleAll} className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${selectedIds.length === filteredAlbums.length ? "bg-indigo-600 border-indigo-500" : "border-slate-600 hover:border-slate-400"}`}>{selectedIds.length === filteredAlbums.length && <Check size={10} className="text-white" />}</button>
+                <span>Preview</span><span>Name</span><span>Photos</span><span>Modified</span><span>Actions</span>
               </div>
+              {filteredAlbums.map((album) => (<AlbumRow key={album.id} album={album} selected={selectedIds.includes(album.id)} onSelect={toggleSelect} onDelete={handleDeleteClick} onEdit={(a) => { setEditingAlbum(a); setShowModal(true); }} onDownload={downloadAlbumAsZip} onView={setSelectedAlbum} onToggleStar={handleToggleStar} isTogglingFavorite={togglingFavoriteId === album.id} />))}
+              {filteredAlbums.length === 0 && (<div className="py-16 text-center"><p className="text-gray-500">No albums found</p><button onClick={() => setShowModal(true)} className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition cursor-pointer">Create your first album</button></div>)}
             </div>
-          )
-        )}
+          </div>
+        ))}
       </div>
     </div>
   );
