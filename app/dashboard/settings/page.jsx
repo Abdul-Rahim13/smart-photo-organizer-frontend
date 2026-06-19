@@ -3,22 +3,12 @@
 import React, { useState } from 'react';
 import {
   User, Lock, Bell, Shield, Palette, Cpu,
-  Camera, Mail, Globe, Eye, EyeOff, Save,
-  RotateCcw, ChevronRight, Check, X,
-  Smartphone, Moon, Sun, Volume2, VolumeX,
-  Download, Trash2, AlertTriangle, Info,
-  CheckCircle, ToggleLeft, ToggleRight, Key
+  Camera, Eye, EyeOff, Save,
+  RotateCcw, Check, X,
+  Smartphone, Moon, Sun,
+  Download, Trash2, AlertTriangle,
+  CheckCircle, Key
 } from 'lucide-react';
-
-// ─── SECTION NAV CONFIG ───────────────────────────────────────────────────────
-const navItems = [
-  { key: "profile",       label: "Profile",        icon: User,      color: "text-indigo-400",  bg: "bg-indigo-500/10"  },
-  { key: "security",      label: "Security",        icon: Lock,      color: "text-yellow-400",  bg: "bg-yellow-500/10"  },
-  { key: "notifications", label: "Notifications",   icon: Bell,      color: "text-rose-400",    bg: "bg-rose-500/10"    },
-  { key: "privacy",       label: "Privacy",         icon: Shield,    color: "text-green-400",   bg: "bg-green-500/10"   },
-  { key: "appearance",    label: "Appearance",      icon: Palette,   color: "text-purple-400",  bg: "bg-purple-500/10"  },
-  { key: "storage",       label: "Storage & Data",  icon: Cpu,       color: "text-cyan-400",    bg: "bg-cyan-500/10"    },
-];
 
 // ─── REUSABLE COMPONENTS ──────────────────────────────────────────────────────
 
@@ -132,7 +122,6 @@ function ProfileSection({ data, onChange }) {
     <div className="space-y-5">
       <SectionHeader title="Profile Settings" desc="Manage your personal information and public profile" icon={User} iconBg="bg-indigo-500/10" iconColor="text-indigo-400" />
 
-      {/* Avatar */}
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
           <div className="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-3xl font-black text-white select-none">
@@ -180,7 +169,6 @@ function SecuritySection({ data, onChange }) {
       <div className="space-y-4">
         <h4 className="text-xs font-black uppercase tracking-widest text-gray-500">Change Password</h4>
 
-        {/* Current password */}
         <div>
           <FieldLabel>Current Password</FieldLabel>
           <div className="relative">
@@ -191,7 +179,6 @@ function SecuritySection({ data, onChange }) {
           </div>
         </div>
 
-        {/* New password */}
         <div>
           <FieldLabel>New Password</FieldLabel>
           <div className="relative">
@@ -210,7 +197,6 @@ function SecuritySection({ data, onChange }) {
           )}
         </div>
 
-        {/* Confirm */}
         <div>
           <FieldLabel>Confirm New Password</FieldLabel>
           <div className="relative">
@@ -309,7 +295,6 @@ function PrivacySection({ data, onChange }) {
         <Toggle label="Location Metadata" desc="Show location info from photo EXIF data" checked={data.locationMeta} onChange={v => onChange("locationMeta", v)} />
       </div>
 
-      {/* Danger zone */}
       <div className="border border-red-500/15 rounded-2xl p-4 mt-2">
         <div className="flex items-center gap-2 mb-3">
           <AlertTriangle size={14} className="text-red-400" />
@@ -325,9 +310,9 @@ function PrivacySection({ data, onChange }) {
 
 function AppearanceSection({ data, onChange }) {
   const themes = [
-    { key: "dark",   label: "Dark",   icon: Moon,  preview: "bg-gray-900" },
-    { key: "light",  label: "Light",  icon: Sun,   preview: "bg-gray-100" },
-    { key: "system", label: "System", icon: Smartphone, preview: "bg-gray-600" },
+    { key: "dark",   label: "Dark",   icon: Moon },
+    { key: "light",  label: "Light",  icon: Sun },
+    { key: "system", label: "System", icon: Smartphone },
   ];
 
   const accents = [
@@ -381,15 +366,13 @@ function AppearanceSection({ data, onChange }) {
         </div>
       </div>
 
-      <div>
-        <SelectField label="Font Size" value={data.fontSize} onChange={v => onChange("fontSize", v)}
-          options={[
-            { value: "sm",  label: "Small"  },
-            { value: "md",  label: "Medium (default)" },
-            { value: "lg",  label: "Large"  },
-          ]}
-        />
-      </div>
+      <SelectField label="Font Size" value={data.fontSize} onChange={v => onChange("fontSize", v)}
+        options={[
+          { value: "sm",  label: "Small"  },
+          { value: "md",  label: "Medium (default)" },
+          { value: "lg",  label: "Large"  },
+        ]}
+      />
 
       <div className="border-t border-gray-800/60 pt-4 space-y-1">
         <h4 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-3">Interface</h4>
@@ -410,7 +393,6 @@ function StorageSection({ data, onChange }) {
     <div className="space-y-6">
       <SectionHeader title="Storage & Data" desc="Monitor usage and manage storage preferences" icon={Cpu} iconBg="bg-cyan-500/10" iconColor="text-cyan-400" />
 
-      {/* Storage meter */}
       <div className="bg-[#0f0a19] border border-gray-800/50 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-bold text-white">Storage Used</p>
@@ -475,6 +457,16 @@ function StorageSection({ data, onChange }) {
   );
 }
 
+// ─── NAV CONFIG ────────────────────────────────────────────────────────────────
+const NAV_ITEMS = [
+  { key: "profile",       label: "Profile",       icon: User   },
+  { key: "security",      label: "Security",      icon: Lock   },
+  { key: "notifications", label: "Notifications",  icon: Bell   },
+  { key: "privacy",       label: "Privacy",        icon: Shield },
+  { key: "appearance",    label: "Appearance",     icon: Palette},
+  { key: "storage",       label: "Storage",        icon: Cpu    },
+];
+
 // ─── DEFAULT STATE ─────────────────────────────────────────────────────────────
 const defaultState = {
   profile:       { name: "Abdul", username: "@abdul", email: "abdul@example.com", phone: "", website: "", bio: "AI Photo Organizer User" },
@@ -487,10 +479,9 @@ const defaultState = {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
-  const [active,  setActive]  = useState("profile");
-  const [state,   setState]   = useState(defaultState);
-  const [saved,   setSaved]   = useState(false);
-  const [dirty,   setDirty]   = useState(false);
+  const [state, setState]   = useState(defaultState);
+  const [saved, setSaved]   = useState(false);
+  const [dirty, setDirty]   = useState(false);
 
   const updateSection = (section, key, value) => {
     setState(prev => ({ ...prev, [section]: { ...prev[section], [key]: value } }));
@@ -510,80 +501,50 @@ export default function SettingsPage() {
     setSaved(false);
   };
 
-  const cfg = navItems.find(n => n.key === active);
-
   return (
     <div className="min-h-screen bg-[#0f0a19] text-gray-100">
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-[#0f0a19]/95 backdrop-blur-sm border-b border-gray-800/60 px-6 md:px-8 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-black text-white">Settings</h2>
-            <p className="text-[11px] text-gray-500">Manage your account preferences</p>
+      <div className="sticky top-0 z-30 bg-[#0f0a19]/95 backdrop-blur-sm border-b border-gray-800/60">
+        <div className="max-w-3xl mx-auto px-6 md:px-8 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-white">Settings</h2>
+              <p className="text-[11px] text-gray-500">Manage your account preferences</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {dirty && (
+                <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full" /> Unsaved changes
+                </span>
+              )}
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 bg-[#1c1430] border border-gray-700 hover:border-gray-500 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
+              >
+                <RotateCcw size={13} /> Reset
+              </button>
+              <button
+                onClick={handleSave}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer shadow-lg
+                  ${saved
+                    ? 'bg-green-600 shadow-green-500/20 text-white'
+                    : 'bg-yellow-500 hover:bg-yellow-400 text-black shadow-yellow-500/20'}`}
+              >
+                {saved ? <><CheckCircle size={13} /> Saved!</> : <><Save size={13} /> Save Changes</>}
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            {dirty && (
-              <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full" /> Unsaved changes
-              </span>
-            )}
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 bg-[#1c1430] border border-gray-700 hover:border-gray-500 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
-            >
-              <RotateCcw size={13} /> Reset to Default
-            </button>
-            <button
-              onClick={handleSave}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer shadow-lg
-                ${saved
-                  ? 'bg-green-600 shadow-green-500/20 text-white'
-                  : 'bg-yellow-500 hover:bg-yellow-400 text-black shadow-yellow-500/20'}`}
-            >
-              {saved ? <><CheckCircle size={13} /> Saved!</> : <><Save size={13} /> Save Changes</>}
-            </button>
-          </div>
+
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-0">
-
-        {/* ── SIDEBAR NAV ────────────────────────────────────────────────── */}
-        <aside className="lg:w-56 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800/60 p-4 lg:p-6 lg:min-h-[calc(100vh-73px)]">
-          <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible">
-            {navItems.map(item => {
-              const Icon = item.icon;
-              const isActive = active === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => setActive(item.key)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer w-full text-left
-                    ${isActive
-                      ? `${item.bg} ${item.color} border border-current/20`
-                      : 'text-gray-500 hover:text-gray-200 hover:bg-white/3'}`}
-                >
-                  <Icon size={15} />
-                  {item.label}
-                  {isActive && <ChevronRight size={12} className="ml-auto hidden lg:block opacity-60" />}
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
-
-        {/* ── CONTENT AREA ───────────────────────────────────────────────── */}
-        <main className="flex-1 p-6 md:p-8 max-w-2xl">
-          {active === "profile"       && <ProfileSection       data={state.profile}       onChange={(k, v) => updateSection("profile",       k, v)} />}
-          {active === "security"      && <SecuritySection      data={state.security}      onChange={(k, v) => updateSection("security",      k, v)} />}
-          {active === "notifications" && <NotificationsSection data={state.notifications} onChange={(k, v) => updateSection("notifications", k, v)} />}
-          {active === "privacy"       && <PrivacySection       data={state.privacy}       onChange={(k, v) => updateSection("privacy",       k, v)} />}
-          {active === "appearance"    && <AppearanceSection    data={state.appearance}    onChange={(k, v) => updateSection("appearance",    k, v)} />}
-          {active === "storage"       && <StorageSection       data={state.storage}       onChange={(k, v) => updateSection("storage",       k, v)} />}
-        </main>
-      </div>
-
+      {/* ── CENTERED CONTENT ───────────────────────────────────────────── */}
+      <main className="max-w-3xl mx-auto px-6 md:px-8 py-8">
+        <div className="bg-[#150f24] border border-gray-800/50 rounded-3xl p-6 md:p-8">
+          <ProfileSection data={state.profile} onChange={(k, v) => updateSection("profile", k, v)} />
+        </div>
+      </main>
     </div>
   );
 }
